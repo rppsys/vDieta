@@ -5,6 +5,7 @@ import datetime
 
 strDbFilename = "dbDieta.db"
 listTables = []
+dictTables = dict()
 
 
 ################################################################################
@@ -34,123 +35,113 @@ def sqlite3_DateTimeForSQL(dtData):
 								# Funções Principais
 ################################################################################
 
+def defineTables():
+	'Define the tables and fields'
+	global dictTables
+	dictAuxFields = dict()
+	#----------------------------------------
+	# Tabela Alimento
+	#----------------------------------------
+	strAuxTable = 'tbAlim'
+	dictAuxFields = {
+	'strAlimento':'VARCHAR',
+	'numCaloria':'INTEGER',
+	'numGrupo':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Conjunto
+	#----------------------------------------
+	strAuxTable = 'tbConj'
+	dictAuxFields = {
+	'strConjunto':'VARCHAR'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Vinculo Conj_Alim
+	#----------------------------------------
+	strAuxTable = 'tbConj_Alim'
+	dictAuxFields = {
+	'codConjunto':'INTEGER',
+	'codAlimento':'INTEGER',
+	'qtdNum':'INTEGER',
+	'qtdUnid':'VARCHAR'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------	
+	# Tabela Opcao
+	#----------------------------------------
+	strAuxTable = 'tbOpt'
+	dictAuxFields = {
+	'strOpt':'VARCHAR'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Vinculo Opt_Conj
+	#----------------------------------------
+	strAuxTable = 'tbOpt_Conj'
+	dictAuxFields = {
+	'codOpt':'INTEGER',
+	'codConj':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Refeicao
+	#----------------------------------------
+	strAuxTable = 'tbRef'
+	dictAuxFields = {
+	'strRefeicao':'VARCHAR',
+	'hrHora':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Vinculo Ref_Opt
+	#----------------------------------------
+	strAuxTable = 'tbRef_Opt'
+	dictAuxFields = {
+	'codRef':'INTEGER',
+	'codOpt':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Plano
+	#----------------------------------------
+	strAuxTable = 'tbPlan'
+	dictAuxFields = {
+	'dataCria':'INTEGER',
+	'dataInicio':'INTEGER',
+	'dataFinal':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Vinculo Plan_Ref
+	#----------------------------------------
+	strAuxTable = 'tbPlan_Ref'
+	dictAuxFields = {
+	'codPlan':'INTEGER',
+	'codRef':'INTEGER',
+	'diaSemana':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+
 def conectarDB():
+	global dictTables
 	global listTables
+	defineTables()
 	conn=sqlite3.connect(strDbFilename)
 	cur=conn.cursor()
-	# Tabela Alimento
-	listTables.append("tbAlim")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbAlim
-	(
-	codigo INTEGER PRIMARY KEY,
-	strAlimento VARCHAR,
-	numCaloria INTEGER,
-	numGrupo INTEGER
-	)
-    '''
-	cur.execute(strExec)
-	# Tabela Conjunto
-	listTables.append("tbConj")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbConj
-	(
-	codigo INTEGER PRIMARY KEY,
-	strConjunto VARCHAR
-	)
-    '''
-	cur.execute(strExec)
-	# Tabela Vinculo Conj_Alim
-	listTables.append("tbConj_Alim")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbConj_Alim
-	(
-	codigo INTEGER PRIMARY KEY,
-	codConjunto INTEGER,
-	codAlimento INTEGER,
-	qtdNum INTEGER,
-	qtdUnid VARCHAR
-	)
-	'''
-	cur.execute(strExec)
-	# Tabela Opcao
-	listTables.append("tbOpt")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbOpt
-	(
-	codigo INTEGER PRIMARY KEY,
-	strOpt VARCHAR
-	)
-	'''
-	cur.execute(strExec)
-	# Tabela Vinculo Opt_Conj
-	listTables.append("tbOpt_Conj")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbOpt_Conj
-	(
-	codigo INTEGER PRIMARY KEY,
-	codOpt INTEGER,
-	codConj INTEGER
-	)
-	'''
-	cur.execute(strExec)
-	# Tabela Refeicao
-	listTables.append("tbRef")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbRef
-	(
-	codigo INTEGER PRIMARY KEY,
-	strRefeicao VARCHAR,
-	hrHora INTEGER
-	)
-	'''
-	cur.execute(strExec)
-	# Tabela Vinculo Ref_Opt
-	listTables.append("tbRef_Opt")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbRef_Opt
-	(
-	codigo INTEGER PRIMARY KEY,
-	codRef INTEGER,
-	codOpt INTEGER
-	)
-	'''
-	cur.execute(strExec)
-	# Tabela Plano
-	listTables.append("tbPlan")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbPlan
-	(
-	codigo INTEGER PRIMARY KEY,
-	dataCria INTEGER,
-	dataInicio INTEGER,
-	dataFinal INTEGER
-	)
-	'''
-	cur.execute(strExec)
-	# Tabela Vinculo Plan_Ref
-	listTables.append("tbPlan_Ref")
-	strExec = '''
-	CREATE TABLE IF NOT EXISTS
-	tbPlan_Ref
-	(
-	codigo INTEGER PRIMARY KEY,
-	codPlan INTEGER,
-	codRef INTEGER,
-	diaSemana INTEGER
-	)
-	'''
-	cur.execute(strExec)
+	for strTable,dictAuxFields in dictTables.items():
+		listTables.append(strTable)
+		strExec = 'CREATE TABLE IF NOT EXISTS ' + strTable + ' ('
+		strExec += 'codigo INTEGER PRIMARY KEY, '
+		for strField,strType in dictAuxFields.items():
+			strExec += strField + ' ' + strType + ', '
+		strExec = strExec[:-2] #Tira último ", "
+		strExec += ')'
+		cur.execute(strExec)
 	# Commita tudo
 	conn.commit()
+	
 	
 def view(tbTable):
 	conn=sqlite3.connect(strDbFilename)
@@ -159,7 +150,8 @@ def view(tbTable):
 	rows=cur.fetchall()
 	conn.close()
 	return rows
-
+	
+	
 def mostrarTodasTabelas():
 	global listTables
 	for i in listTables:
@@ -172,5 +164,3 @@ def mostrarTodasTabelas():
 		print("-------------------")
 	
 	
-conectarDB()
-mostrarTodasTabelas()
