@@ -1,0 +1,8 @@
+27/05
+Alterei a modelagem do BD levando renomeando qdtUnid para strUnidade e levando para a tabela tbAlim
+Porque ai eu coloco a unidade, e já escrevo quantas calorias existem em UMA unidade desse alimento
+O qtdNum foi renomeado para numQtd e fica na tabela vinculo e ai podemos ter conjuntos com diversas quantidades
+
+TODO
+Fazer hard insert de horarios criar um plano teste 
+pra poder ir pra interface gráfica
