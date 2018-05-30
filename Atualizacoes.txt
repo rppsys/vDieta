@@ -1,108 +1,18 @@
 27/05
-Alterei a modelagem do BD levando renomeando qdtUnid para strUnidade e levando para a tabela tbAlim
+- Alterei a modelagem do BD levando renomeando qdtUnid para strUnidade e levando para a tabela tbAlim
 Porque ai eu coloco a unidade, e já escrevo quantas calorias existem em UMA unidade desse alimento
-O qtdNum foi renomeado para numQtd e fica na tabela vinculo e ai podemos ter conjuntos com diversas quantidades
+- O qtdNum foi renomeado para numQtd e fica na tabela vinculo e ai podemos ter conjuntos com diversas quantidades
 
-29/05 - Brainstorm Interface Gráfica - Funções Principais
+30/05
+- O arquivo "Atualizacoes.txt" agora vai ter essa descrição itemizada de atualizações apenas. 
+- Brainstorms e Planejamentos eu vou colocar no arquivo "Planejamento.txt"
+- Mudei os tipos de dados VARCHAR na definicao dos campos do banco de dados do bdDieta.py para o tipo TEXT do sqlite3
+- Adicionei as definições das tabelas tbHistOpt e tbHistConj ao dictTables do dbDieta.py
+- Mudei o campo codTipo do tbAlim para booBebida que será falso se for comida e true se for bebida;
+- Criei mais um campo em tbAlim chamado numTipo que será um tipo a mais de classificação pro futuro. 
+Para poder classificar como doce, salgado, etc... para criar tipos a mais de classificações.
+Já alterei o código para incluir o campo novo.
+- Commitei 
 
-Preciso de uma janela aonde vão aparecer as opções não consumidas do dia.
-
-Vai aparecer um botão grande com o nome da refeição e o horário.
-Em baixo, também aparecerá em cada linha, as opções daquele horário.
-
-
-Ao clicar em um botão desses ele vai para outra janela que vai focar na Refeição clicada.
-
-Aqui as opções são divididas em conjuntos. Cada conjunto recebe um botão Toogle agrupado. 
-De forma que ao clicar nesse botão, você muda a cor, ou seja, seleciona. 
-
-Havéra mais dois botões em baixo.
-- Consumir
-- Voltar
-
-Consumir é para você Consumir os Conjuntos Selecionados.
-	Ao consumir, você basicamente vai estar adicionando a uma tabela Histórico que eu ainda não criei, 
-	um vinculo entre a data atual, os alimentos de que fazem parte o conjunto e a quantidade de cada alimento.
-
-Ao consumir e voltar, ele deve retirar das opções, aquelas que já foram consumidas.
-
-Voltar volta para a janela anterior.
-
-Então, tenho que pensar direitinho como fazer as conjuntos aparecerem na tela de Acompanhamento.
-
-Porque eu já tenho que pensar em como recalculas as opções do dia baseado no histórico de consumo daquele dia. 
-
-Então, depois de mais umas reflexões eu cheguei a algumas conclusões:
-
-- Eu não vou deixar o usuário expandir e consumir Alimentos Separados. O nível mais baixo será o de Conjuntos. 
-- O nome conjunto vou usar a nível de programação, mas deve mudar para algo mais amigável como "Receita" ou algo semelhante.
-- Vou precisar de duas tabelas de históricos, uma com o histórico de opções do dia e hora. E outro com o histórico de conjuntos consumidos no dia e hora.
-
-tbHistOpt: Tabela Historico de Opções - Lista as opções de uma Data e Hora Específicos
-	codigo
-	dtData: Data mesmo no formato UTC ou qq outro formato mais adequado
-	strRefeicao - Eu poderia apenas linkar ao codRef mas nao farei isso para permitir que as Refeicoes mudem com o tempo
-					sem afetar os registros desse historico.
-	hrHora - Idem.
-	codOpt - Código da Opção 
-	booConsumido - Diz se essa opção já foi consumida ou não. True = Consumida. False = Não foi.
-	
-	
->> O programa vai criar os itens dessa tabela todos os dias e depois vou monitorar essa tabela para redesenhar a tela de acompanhamento de opções.
-
-tbHistConj: Tabela Histórico de Conjuntos - Lista os conjuntos consumidos em determinada Data e Hora
-	codigo
-	Data
-	hrHora
-	codConj
-	codOpt = Lista a opção a partir da qual esse conjunto foi escolhido. Se nao existir, fica com 0.
-	
-Na prática ao consumir produtos eu vou dar baixa marcando para true na tbHistOpt e vou adicionar os conjuntos 
-consumidos na tbHistConj
-
->> Essa outra tabela é para realmente registrar os Conjuntos que vão sendo consumidos no dia e na hora. Veja que a data
-e hora da tabela tbHistConj são criadas a partir do Plano Alimentar. Então é o PLANO. É o que deveria ser. Já a Data e Hora 
-da tabela tbHistConj mostra a data e a hora em que determinado conjunto foi realmente consumido. 
-	Essa tabela tbHistConj é importante para registrar, também, conjuntos que foram consumidos a mais - fora da dieta. Na tela 
-	de acompanhamento deverá haver uma opção para consumir outros conjuntos que não estão no plano.
-	
-Até agora, chego a conclusão da necessidade de algumas telas:
-
-***** -Tela de Acompanhamento: Mostra as opções restantes do dia. Ela é criada a partir de tbHistOpt filtrando para a data
-atual e pedindo tudo com booConsumido = False.
-
-	Em baixo deve javer mais comandos como:
-		- Consumir outros alimentos: Possibilita ir para uma janela mostrando todos os conjuntos e permite selecionar um ou mais
-		para consumir, mesmo fora do plano. 
-		- Sair do Aplicativo
-
-
-***** -Tela de Consumo de Conjuntos a Partir de uma Refeição Específica: Ao clicar em uma refeição da tela de acompanhamento ele traz essa tela de consumo no 
-qual as opções de determinada refeição são transformados em botões toogle agrupados.
-
-	Aqui haverá botões:
-	- Consumir: Os botões selecionados são lidos de forma que as tabelas tbHistOpt seja atualizada e a tabela tbHistConj também.
-
-***** - Tela de Consumo de Conjuntos Fora da Dieta - Essa tela mostra uma lista de todos os conjuntos possíveis. Deve ser capaz
-de filtrar essa lista também por grupos, e tipo (comida / bebida). Seria interessante criar mais tipos para classificar os alimentos
-como doce, salgado, etc.... quanto mais opções de filtro, melhor.
-
-	Ao filtrar, pode-se escolher os Conjuntos e adiciona-los a uma lista temporária. Ou mesmo simplesmente marcar esses
-	conjuntos de alguma forma.
-	
-	- Dois botoes:
-		Consumir = Atualiza tbHistConj com os Conjuntos consumidos e regressa para a janela de acompanhamento.
-		Cancelar = Cancela e regressa para a janela de acompanhamento;
-
-- Tela de Histórico
-		Nessa tela deverá ser possível escolher a data e trazer os dados do tbHistConj mostrando o que foi consumido em determinado dia.
-		Claro que o ideal é fazer um query e trazer funções de agregação como numero de calorias consumidas.
-		O ideal mesmo seria colocar lado a lado o tbHistOpt com o tbHistConj e fazer a comparação entre planejado e consumido.
-		
-- Tela de Resumo
-		Aqui eu posso criar rotinas que pega um periodo no tempo e diz se estou consumindo mais do que o planejado ou não.
-
-		
-Na prática devo me preocupar algora com as telas marcadas com um ****** o resto fica para depois.
 
 

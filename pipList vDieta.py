@@ -1,9 +1,14 @@
 #Aqui vou manter histórico de todos os pips que dei nessa
 #pasta vDieta
 
-"""
+#Bibliotecas geralmente usadas nos programas
+pip install numpy
+pip install pandas
+
+
+'''
 Python Kivy
-"""
+'''
 
 #https://kivy.org/docs/installation/installation-windows.html
 
@@ -19,3 +24,4 @@ Para fazer o exe
 """
 
 pip install --upgrade pyinstaller
+

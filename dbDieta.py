@@ -47,11 +47,12 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbAlim'
 	dictAuxFields = {
-	'strAlimento':'VARCHAR',
-	'strUnidade':'VARCHAR',
+	'strAlimento':'TEXT',
+	'strUnidade':'TEXT',
 	'numCaloria':'INTEGER',
 	'numGrupo':'INTEGER',
-	'codTipo':'INTEGER'
+	'booBebida':'INTEGER',
+	'numTipo':'INTEGER'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -59,7 +60,7 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbConj'
 	dictAuxFields = {
-	'strConjunto':'VARCHAR'
+	'strConjunto':'TEXT'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -67,8 +68,8 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbConj_Alim'
 	dictAuxFields = {
-	'codConjunto':'INTEGER',
-	'codAlimento':'INTEGER',
+	'codConj':'INTEGER',
+	'codAlim':'INTEGER',
 	'numQtd':'INTEGER'
 	}
 	dictTables[strAuxTable] = dictAuxFields
@@ -77,7 +78,7 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbOpt'
 	dictAuxFields = {
-	'strOpt':'VARCHAR'
+	'strOpt':'TEXT'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -94,7 +95,7 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbRef'
 	dictAuxFields = {
-	'strRefeicao':'VARCHAR',
+	'strRefeicao':'TEXT',
 	'hrHora':'INTEGER'
 	}
 	dictTables[strAuxTable] = dictAuxFields
@@ -127,12 +128,42 @@ def defineTables():
 	'diaSemana':'INTEGER'
 	}
 	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Histórico de Opt
+	#----------------------------------------
+	strAuxTable = 'tbHistOpt'
+	dictAuxFields = {
+	'dtData':'TEXT',
+	'hrHora':'INTEGER',
+	'strRefeicao':'TEXT',
+	'codOpt':'INTEGER',
+	'booC':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
+	#----------------------------------------
+	# Tabela Histórico de Conj
+	#----------------------------------------
+	strAuxTable = 'tbHistConj'
+	dictAuxFields = {
+	'dtData':'TEXT',
+	'hrHora':'INTEGER',
+	'codConj':'INTEGER',
+	'codOpt':'INTEGER'
+	}
+	dictTables[strAuxTable] = dictAuxFields
 
-def inicializar():
+	
+	
+	
+	
+	
+def inicializar(drop,gera):
 	global dictTables
 	defineTables()
-	dropAllTables()
-	gerarDB()
+	if drop:
+		dropAllTables()
+	if gera:
+		gerarDB()
 
 def gerarDB():
 	conn=sqlite3.connect(strDbFilename)
@@ -233,8 +264,8 @@ def view(tbTable):
 	conn.close()
 	return rows
 
-def insAlimUn(strAlimento,strUnidade,numCaloria,numGrupo,codTipo,numQtd):
-	a = append('tbAlim',(strAlimento,strUnidade,numCaloria,numGrupo,codTipo,))
+def insAlimUn(strAlimento,strUnidade,numCaloria,numGrupo,booBebida,numTipo,numQtd):
+	a = append('tbAlim',(strAlimento,strUnidade,numCaloria,numGrupo,booBebida,numTipo,))
 	c = append('tbConj',(strAlimento,))
 	append('tbConj_Alim',(c,a,numQtd,))
 	o = append('tbOpt',(strAlimento,))
@@ -243,14 +274,14 @@ def insAlimUn(strAlimento,strUnidade,numCaloria,numGrupo,codTipo,numQtd):
 	
 def hardInsertExemplos():
 	# Alimentos, Conjuntos e Opções
-	a1,c1,o1 = insAlimUn('Café','ml',0,0,2,100)
-	a2,c2,o2 = insAlimUn('Pão de forma integral','fatia',0,7,1,1)
-	a3,c3,o3 = insAlimUn('Cuscuz','col de sopa',0,7,1,2)
-	a4,c4,o4 = insAlimUn('Ovo','unid',0,5,1,2)
-	a5,c5,o5 = insAlimUn('Frango','col de sopa',0,4,1,3)
-	a6,c6,o6 = insAlimUn('Atum','col de sopa',0,4,1,3)
-	a7,c7,o7 = insAlimUn('Frutas Frescas','porção',0,3,1,1,)
-	a8,c8,o8 = insAlimUn('Castanhas','porção',0,3,1,1,)
+	a1,c1,o1 = insAlimUn('Café','ml',0,0,1,0,100)
+	a2,c2,o2 = insAlimUn('Pão de forma integral','fatia',0,7,0,0,1)
+	a3,c3,o3 = insAlimUn('Cuscuz','col de sopa',0,7,0,0,2)
+	a4,c4,o4 = insAlimUn('Ovo','unid',0,5,0,0,2)
+	a5,c5,o5 = insAlimUn('Frango','col de sopa',0,4,0,0,3)
+	a6,c6,o6 = insAlimUn('Atum','col de sopa',0,4,0,0,3)
+	a7,c7,o7 = insAlimUn('Frutas Frescas','porção',0,3,0,0,1,)
+	a8,c8,o8 = insAlimUn('Castanhas','porção',0,3,0,0,1,)
 
 	c9 = append('tbConj',('Sanduiche c/ Ovo',))
 	append('tbConj_Alim',(c9,a2,2,))
@@ -323,6 +354,8 @@ def hardInsertExemplos():
 	append('tbPlan_Ref',(p1,r3,7))
 	append('tbPlan_Ref',(p1,r4,7))
 	
+	
+
 ################################################################################
 								# Funções Programação
 ################################################################################
@@ -362,7 +395,24 @@ def retPandasDfFromSQL(textSQL):
 	return retDF
 	
 
-	
-inicializar()
+
+def getRefFromPlanDia(codPlan,diaSemana):	
+	textSQL = '''
+	SELECT
+	tbPlan_Ref.codigo as codigo,
+	tbRef.strRefeicao,
+	tbRef.hrHora,
+	tbPlan_Ref.codRef
+	FROM
+	tbPlan_Ref, tbRef
+	WHERE
+	tbPlan_Ref.codPlan > 0
+	AND tbRef.codigo = tbPlan_Ref.codRef
+	AND tbPlan_Ref.codPlan = ''' + str(codPlan) + ' ' + '''
+	AND tbPlan_Ref.diaSemana = ''' + str(diaSemana)	
+	df = retPandasDfFromSQL(textSQL)
+	display(df)
+
+inicializar(True,True)
 hardInsertExemplos()
 mostrarTodasTabelas()
