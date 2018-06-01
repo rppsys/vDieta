@@ -7,6 +7,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 
 from kivy.properties import NumericProperty
@@ -91,10 +92,12 @@ Builder.load_string('''
     hue: random()
     canvas:
         Color:
-            rgba: .0, .8, .0, 1
+            rgba: .0, .0, .8, 1
         Rectangle:
             size: self.size
 
+	on_pre_enter: root.gerarTelaDietaAtual()
+			
     BoxLayout:
         orientation: 'vertical'
         Label:
@@ -106,29 +109,15 @@ Builder.load_string('''
             font_size: 30
             text_size: self.size
             size_hint: 1,.2
-        GridLayout:
-            size_hint: 1,.5
-            cols: 2
-            row_force_default: True
-            row_default_height: 40
-            padding: [10,20,30,40]
-            Label:
-                text: 'Dieta do Dia'
         BoxLayout:
+			id: scDietaDia_Buttons_BoxLayout
             orientation: 'vertical'
             padding: 50
-            size_hint: 1,.3
+            size_hint: 1,.8
+            halign: 'center'
+            valign: 'middle'
 
-            Button:
-                text: 'SALVAR'
-                font_size: 24
-                size_hint: 1,.8
-
-            Label:
-                id: modScPrinc_Label_Estado
-                text: 'ESTADO: INALTERADO'
-                font_size: 12
-                size_hint: 1,.2
+			
 <scCCRef>:
     hue: random()
     canvas:
@@ -272,8 +261,24 @@ class TelaPrincipal(Widget):
 		
 
 class scDietaDia(Screen):
-    hue = NumericProperty(1)
+	hue = NumericProperty(1)
 
+	def	gerarTelaDietaAtual(self,*args):
+		if db.getConfig('DietaAlterada') == '1':
+			auxBoxLayout = self.ids['scDietaDia_Buttons_BoxLayout']
+			df = db.retDF_DietaAtual()
+			strRefeicao = ''
+			for index,row in df.iterrows():
+				if strRefeicao != row['strRefeicao']:
+					strRefeicao = row['strRefeicao']
+					lbRef = Label(text = str(row['hrHora']) + ' ' + strRefeicao)
+					auxBoxLayout.add_widget(lbRef)
+				btnOpt = Button(text = row['strOpt'])
+				auxBoxLayout.add_widget(btnOpt)
+			db.setConfig('DietaAlterada','0')			
+			# Ao alterar a Dieta Atual seja consumindo algo ou etc, preciso refazer essa tela ou mandar excluir o botao
+			
+	
 class scCCRef(Screen):
     hue = NumericProperty(0)
 
@@ -297,7 +302,7 @@ import dbDieta as db
 ###############################################################################
 class mainDieta(App):
     def build(self):
-        #db.connect()
+        db.initDB()
         root = TelaPrincipal()
         rFL = root.returnFloatLayout()
         rSG = root.returnScreenManager()

@@ -71,11 +71,13 @@ Até agora, chego a conclusão da necessidade de algumas telas:
 ***** -Tela de Acompanhamento: Mostra as opções restantes do dia. Ela é criada a partir de tbHistOpt filtrando para a data
 atual e pedindo tudo com booConsumido = False.
 
-	Em baixo deve javer mais comandos como:
+	Em baixo deve haver mais comandos como:
 		- Consumir outros alimentos: Possibilita ir para uma janela mostrando todos os conjuntos e permite selecionar um ou mais
 		para consumir, mesmo fora do plano. 
 		- Sair do Aplicativo
 
+scDietaDia
+		
 
 ***** -Tela de Consumo de Conjuntos a Partir de uma Refeição Específica: Ao clicar em uma refeição da tela de acompanhamento ele traz essa tela de consumo no 
 qual as opções de determinada refeição são transformados em botões toogle agrupados.
@@ -83,6 +85,11 @@ qual as opções de determinada refeição são transformados em botões toogle 
 	Aqui haverá botões:
 	- Consumir: Os botões selecionados são lidos de forma que as tabelas tbHistOpt seja atualizada e a tabela tbHistConj também.
 
+	
+scCCRef = screen Consumo Conj Refeicao
+
+
+	
 ***** - Tela de Consumo de Conjuntos Fora da Dieta - Essa tela mostra uma lista de todos os conjuntos possíveis. Deve ser capaz
 de filtrar essa lista também por grupos, e tipo (comida / bebida). Seria interessante criar mais tipos para classificar os alimentos
 como doce, salgado, etc.... quanto mais opções de filtro, melhor.
@@ -94,14 +101,21 @@ como doce, salgado, etc.... quanto mais opções de filtro, melhor.
 		Consumir = Atualiza tbHistConj com os Conjuntos consumidos e regressa para a janela de acompanhamento.
 		Cancelar = Cancela e regressa para a janela de acompanhamento;
 
+scCC
+		
+		
 - Tela de Histórico
 		Nessa tela deverá ser possível escolher a data e trazer os dados do tbHistConj mostrando o que foi consumido em determinado dia.
 		Claro que o ideal é fazer um query e trazer funções de agregação como numero de calorias consumidas.
 		O ideal mesmo seria colocar lado a lado o tbHistOpt com o tbHistConj e fazer a comparação entre planejado e consumido.
-		
+	
+scHist
+	
 - Tela de Resumo
 		Aqui eu posso criar rotinas que pega um periodo no tempo e diz se estou consumindo mais do que o planejado ou não.
 
+		
+scRes
 		
 Na prática devo me preocupar algora com as telas marcadas com um ****** o resto fica para depois.
 

@@ -6,13 +6,11 @@ import datetime
 import numpy as np
 import pandas as pd
 
-
 strDbFilename = "dbDieta.db"
 dictTables = dict()
 
-
 ################################################################################
-								# Funções Auxiliares
+								# Funções Auxiliares Banco de Dados
 ################################################################################
 def nC(tbTable):
 	# Verifica maior codigo da tabela tbTable e retorna esse codido incrementado de 1
@@ -33,13 +31,82 @@ def getDataHoje():
 def sqlite3_DateTimeForSQL(dtData):
 	strRet = "'{0:04}-{1:02}-{2:02}'".format(dtData.year,dtData.month,dtData.day)
 	return strRet
+	
+def getWeekDay(dtData):
+	'Domingo começa em 1 até sábado igual a 7'
+	numRet = dtData.isoweekday() + 1
+	if numRet == 8:
+		numRet = 1
+	return numRet
 
+	
 ################################################################################
-								# Funções Principais
+								# Funções para Teste do Código
+################################################################################
+
+		
+def mostrarTabela(tbTable):
+	df = retPandasDfFromSQL('Select * From ' + tbTable)
+	print("")
+	print("....................")
+	print(tbTable)
+	print("....................")
+	display(df)
+	print("-------------------")
+				
+def mostrarTodasTabelas():
+	global dictTables
+	for i,k in dictTables.items():
+		df = retPandasDfFromSQL('Select * From ' + i)
+		print("")
+		print("....................")
+		print(i)
+		print("....................")
+		display(df)
+		print("-------------------")
+		
+def retPandasDfFromSQL(textSQL):
+	conn=sqlite3.connect(strDbFilename)
+	cur=conn.cursor()
+	cur.execute(textSQL)
+	colnames = [description[0] for description in cur.description]
+	rows=cur.fetchall()
+	retDF = pd.DataFrame.from_records(rows,columns=colnames)
+	retDF.index = retDF['codigo']
+	retDF.drop('codigo',axis=1,inplace=True)
+	return retDF
+	
+def getRefFromPlanDia(codPlan,diaSemana):	
+	textSQL = '''
+	SELECT
+	tbPlan_Ref.codigo as codigo,
+	tbRef.strRefeicao,
+	tbRef.hrHora,
+	tbPlan_Ref.codRef
+	FROM
+	tbPlan_Ref, tbRef
+	WHERE
+	tbPlan_Ref.codPlan > 0
+	AND tbRef.codigo = tbPlan_Ref.codRef
+	AND tbPlan_Ref.codPlan = ''' + str(codPlan) + ' ' + '''
+	AND tbPlan_Ref.diaSemana = ''' + str(diaSemana)	
+	df = retPandasDfFromSQL(textSQL)
+	display(df)
+
+def inicializar(drop,gera):
+	global dictTables
+	defineTables()
+	if drop:
+		dropAllTables()
+	if gera:
+		gerarDB()
+
+	
+################################################################################
+								# Funções Principais Banco de Dados
 ################################################################################
 
 def defineTables():
-	'Define the tables and fields'
 	global dictTables
 	dictAuxFields = dict()
 	#----------------------------------------
@@ -151,20 +218,16 @@ def defineTables():
 	'codOpt':'INTEGER'
 	}
 	dictTables[strAuxTable] = dictAuxFields
-
+	#----------------------------------------
+	# Tabela Configurações
+	#----------------------------------------
+	strAuxTable = 'tbConfig'
+	dictAuxFields = {
+	'strKey':'TEXT',
+	'strValue':'TEXT'
+	}
+	dictTables[strAuxTable] = dictAuxFields
 	
-	
-	
-	
-	
-def inicializar(drop,gera):
-	global dictTables
-	defineTables()
-	if drop:
-		dropAllTables()
-	if gera:
-		gerarDB()
-
 def gerarDB():
 	conn=sqlite3.connect(strDbFilename)
 	cur=conn.cursor()
@@ -178,7 +241,7 @@ def gerarDB():
 		cur.execute(strExec)
 	# Commita tudo
 	conn.commit()
-	print('Tabelas criadas')
+	#print('Tabelas criadas')
 	
 def dropAllTables():
 	global dictTables
@@ -190,8 +253,16 @@ def dropAllTables():
 	# Commita tudo
 	conn.commit()
 	print('Tabelas antigas dropadas')
-
 	
+def dropTable(tbTable):
+	global dictTables
+	conn=sqlite3.connect(strDbFilename)
+	cur=conn.cursor()
+	strExec = 'DROP TABLE ' + tbTable
+	cur.execute(strExec)
+	conn.commit()
+	print('Tabela {0} dropada'.format(tbTable))
+		
 def append(tbTable,tValues):
 	'''
 	db.append('tbAlim',('Pão',10,5,))
@@ -354,65 +425,89 @@ def hardInsertExemplos():
 	append('tbPlan_Ref',(p1,r3,7))
 	append('tbPlan_Ref',(p1,r4,7))
 	
-	
-
-################################################################################
-								# Funções Programação
-################################################################################
-
-		
-def mostrarTabela(tbTable):
-	df = retPandasDfFromSQL('Select * From ' + tbTable)
-	print("")
-	print("....................")
-	print(tbTable)
-	print("....................")
-	display(df)
-	print("-------------------")
-		
-		
-def mostrarTodasTabelas():
-	global dictTables
-	for i,k in dictTables.items():
-		df = retPandasDfFromSQL('Select * From ' + i)
-		print("")
-		print("....................")
-		print(i)
-		print("....................")
-		display(df)
-		print("-------------------")
-	
-	
-def retPandasDfFromSQL(textSQL):
+def getConfig(strKey):
 	conn=sqlite3.connect(strDbFilename)
 	cur=conn.cursor()
-	cur.execute(textSQL)
-	colnames = [description[0] for description in cur.description]
-	rows=cur.fetchall()
-	retDF = pd.DataFrame.from_records(rows,columns=colnames)
-	retDF.index = retDF['codigo']
-	retDF.drop('codigo',axis=1,inplace=True)
-	return retDF
+	cur.execute("SELECT codigo,strKey,strValue FROM tbConfig Where strKey = ?",(strKey,))
+	row = cur.fetchone()
+	conn.close()
+	if row == None:
+		return ''
+	else:
+		return row[2]	
 	
+def setConfig (strKey,strValue):
+	conn=sqlite3.connect(strDbFilename)
+	cur=conn.cursor()
+	cur.execute("SELECT codigo,strKey,strValue FROM tbConfig Where strKey = ?",(strKey,))
+	row = cur.fetchone()
+	conn.close()
+	if row == None:
+		return append('tbConfig',(strKey,strValue,))
+	else:
+		cod = row[0]
+		conn=sqlite3.connect(strDbFilename)
+		cur=conn.cursor()
+		cur.execute("UPDATE tbConfig SET strValue=? WHERE codigo=?",(strValue,cod,))
+		conn.commit()
+		conn.close()
+		return cod
 
+def initDB():
+	''' Inicia banco de dados '''
+	defineTables()
+	gerarDB()
+	setConfig('DietaAlterada','1')
+	
+	#Verifica se já inicializei a data de hoje
+	dtHoje = getDataHoje()
+	strUltimoAcesso = getConfig('strUltimoAcesso')
+	if strUltimoAcesso != sqlite3_DateTimeForSQL(dtHoje):
+		# Inicializações de novo dia: Preciso criar tbHistOpt
+		numWeek = getWeekDay(dtHoje)
+		numPlan = nC('tbPlan') - 1
+		textSQL = '''
+		SELECT
+		tbPlan_Ref.codigo as codigo,
+		tbPlan_Ref.codRef,
+		tbRef.strRefeicao,
+		tbRef.hrHora,
+		tbRef_Opt.codOpt,
+		tbOpt.strOpt
+		FROM
+		tbPlan_Ref, tbRef, tbRef_Opt, tbOpt
+		WHERE
+		tbPlan_Ref.codigo > 0
+		AND tbRef.codigo = tbPlan_Ref.codRef
+		AND tbPlan_Ref.codPlan = ''' + str(numPlan) + ' ' + '''
+		AND tbPlan_Ref.diaSemana = ''' + str(numWeek) + ' ' + '''
+		AND tbRef_Opt.codRef = tbPlan_Ref.codRef
+		AND tbRef_Opt.codOpt = tbOpt.codigo
+		ORDER BY hrHora
+		'''
+		df = retPandasDfFromSQL(textSQL)
+		for index,row in df.iterrows():
+			append('tbHistOpt',(dtHoje,row['hrHora'],row['strRefeicao'],int(row['codOpt']),0,))
+		
+		# Avisa que já inicializou o dia de hoje
+		setConfig('strUltimoAcesso',sqlite3_DateTimeForSQL(dtHoje))
+		setConfig('DietaAlterada','1')
 
-def getRefFromPlanDia(codPlan,diaSemana):	
+def	retDF_DietaAtual():
 	textSQL = '''
-	SELECT
-	tbPlan_Ref.codigo as codigo,
-	tbRef.strRefeicao,
-	tbRef.hrHora,
-	tbPlan_Ref.codRef
-	FROM
-	tbPlan_Ref, tbRef
-	WHERE
-	tbPlan_Ref.codPlan > 0
-	AND tbRef.codigo = tbPlan_Ref.codRef
-	AND tbPlan_Ref.codPlan = ''' + str(codPlan) + ' ' + '''
-	AND tbPlan_Ref.diaSemana = ''' + str(diaSemana)	
+	Select 
+	tbHistOpt.codigo,
+	tbHistOpt.dtData,
+	tbHistOpt.hrHora,
+	tbHistOpt.strRefeicao,
+	tbHistOpt.codOpt,
+	tbHistOpt.booC,
+	tbOpt.strOpt
+	From 
+	tbHistOpt, tbOpt
+	Where tbHistOpt.codOpt = tbOpt.codigo
+	And booC = 0
+	Order By tbHistOpt.hrHora
+	'''
 	df = retPandasDfFromSQL(textSQL)
-	display(df)
-
-inicializar(True,True)
-hardInsertExemplos()
-mostrarTodasTabelas()
+	return df
