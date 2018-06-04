@@ -1,5 +1,6 @@
 # Bibliotecas Python
 import datetime
+from functools import partial 
 
 # Bibliotecas Kivy
 from kivy.app import App
@@ -74,7 +75,7 @@ Builder.load_string('''
                     text: 'Autor'
 					on_release:
 						root.mmbAutor_Click()
-										
+						
     FloatLayout:
         id: rootFloatLayout
         size: root.width,root.height - rootActionBar.height
@@ -88,6 +89,9 @@ Builder.load_string('''
         ScreenManager:
             id: rootManager
 
+<widBtnOpt>
+			
+			
 <scDietaDia>:
     hue: random()
     canvas:
@@ -116,7 +120,11 @@ Builder.load_string('''
             size_hint: 1,.8
             halign: 'center'
             valign: 'middle'
-
+			Button:
+				text: 'Proximo'
+				on_press: root.proximo()
+			
+			
 			
 <scCCRef>:
     hue: random()
@@ -125,9 +133,13 @@ Builder.load_string('''
             hsv: self.hue, .5, .3
         Rectangle:
             size: self.size
-    BoxLayout:
+
+	on_pre_enter: root.gerarTelaCCRef()
+
+	BoxLayout:
         orientation: 'vertical'
-        Label:
+        Label:			
+			id: scCCRef_Mainlabel
             text: 'Receitas da Refeição'
             font_size: 40
             size_hint: 1,0.2
@@ -226,6 +238,8 @@ Builder.load_string('''
 # Aquivos do Projeto
 
 #Variaveis Globais
+chosenOpt = 0
+
 
 # Janelas do Sistema
 class TelaPrincipal(Widget):
@@ -258,11 +272,31 @@ class TelaPrincipal(Widget):
     def mmbAutor_Click(self):
         self.ids['rootManager'].transition = SlideTransition(direction="left")
         self.ids['rootManager'].current = 'scAutor'
+
+
+class widBtnOpt(Button):
+	global chosenOpt
+	codOpt = NumericProperty(0)
+
+	def __init__(self, **kwargs):
+		super(widBtnOpt, self).__init__(**kwargs)
 		
+	def iniciar(self,texto,cod):
+		self.text = texto
+		self.codOpt = cod
 
+	def evento_click(self,manager,*args):
+		global chosenOpt
+		print(str(self.codOpt))
+		chosenOpt = self.codOpt
+		manager.current = 'scCCRef'
+		
 class scDietaDia(Screen):
-	hue = NumericProperty(1)
-
+	hue = NumericProperty(1)	
+			
+	def proximo(self):
+		self.manager.current = 'scAutor'
+	
 	def	gerarTelaDietaAtual(self,*args):
 		if db.getConfig('DietaAlterada') == '1':
 			auxBoxLayout = self.ids['scDietaDia_Buttons_BoxLayout']
@@ -273,15 +307,25 @@ class scDietaDia(Screen):
 					strRefeicao = row['strRefeicao']
 					lbRef = Label(text = str(row['hrHora']) + ' ' + strRefeicao)
 					auxBoxLayout.add_widget(lbRef)
-				btnOpt = Button(text = row['strOpt'])
+				btnOpt = widBtnOpt()
+				btnOpt.iniciar(row['strOpt'],int(row['codOpt']))
+				btnOpt.bind(on_press = partial(btnOpt.evento_click,self.manager))
 				auxBoxLayout.add_widget(btnOpt)
 			db.setConfig('DietaAlterada','0')			
 			# Ao alterar a Dieta Atual seja consumindo algo ou etc, preciso refazer essa tela ou mandar excluir o botao
 			
-	
 class scCCRef(Screen):
-    hue = NumericProperty(0)
+	global chosenOpt
+	hue = NumericProperty(0)
 
+	def gerarTelaCCRef(self,*args):
+		global chosenOpt
+		a = self.ids['scCCRef_Mainlabel']
+		a.text = str(chosenOpt)
+		#Aqui vou pegar a opcao e criar botoes com os conjuntos do tipo toogle para escolher e consumir
+		# Atualizar tbHistOpt, atualizar tbHistConj e voltar pra tela anterior
+
+	
 class scCC(Screen):
     hue = NumericProperty(0)
 
@@ -301,26 +345,23 @@ import dbDieta as db
                                 # Aplicativo Principal
 ###############################################################################
 class mainDieta(App):
-    def build(self):
-        db.initDB()
-        root = TelaPrincipal()
-        rFL = root.returnFloatLayout()
-        rSG = root.returnScreenManager()
+	def build(self):
+		db.initDB()
+		root = TelaPrincipal()
+		rFL = root.returnFloatLayout()
+		rSG = root.returnScreenManager()
 
-        widScDietaDia  = scDietaDia(name='scDietaDia')
-        widScCCRef  = scCCRef(name='scCCRef')
-        widScCC  = scCC(name='scCC')
-        widScHist  = scHist(name='scHist')
-        widScRes  = scRes(name='scRes')
-        widScAutor  = scAutor(name='scAutor')		
+		widScDietaDia  = scDietaDia(name='scDietaDia')
+		widScCCRef  = scCCRef(name='scCCRef')
+		widScCC  = scCC(name='scCC')
+		widScHist  = scHist(name='scHist')
+		widScRes  = scRes(name='scRes')
+		widScAutor  = scAutor(name='scAutor')		
 		
-        listWidSc = [widScDietaDia,widScCCRef,widScCC,widScHist,widScRes,widScAutor]
-        for widsc in listWidSc:
-            rSG.add_widget(widsc)
-
-        # Cria os Widgets de Tela e o Gerenciador de Telas
-        #rFL.add_widget(manager)
-        return root
+		listWidSc = [widScDietaDia,widScCCRef,widScCC,widScHist,widScRes,widScAutor]
+		for widsc in listWidSc:
+			rSG.add_widget(widsc)
+		return root
 
 if __name__ == '__main__':
     mainDieta().run()

@@ -507,6 +507,7 @@ def	retDF_DietaAtual():
 	tbHistOpt, tbOpt
 	Where tbHistOpt.codOpt = tbOpt.codigo
 	And booC = 0
+	And tbHistOpt.dtData = ''' + sqlite3_DateTimeForSQL(datetime.date.today()) + ' ' + '''
 	Order By tbHistOpt.hrHora
 	'''
 	df = retPandasDfFromSQL(textSQL)
