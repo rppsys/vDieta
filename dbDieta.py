@@ -512,3 +512,82 @@ def	retDF_DietaAtual():
 	'''
 	df = retPandasDfFromSQL(textSQL)
 	return df
+
+def	retDF_DietaAtual():
+	textSQL = '''
+	Select 
+	tbHistOpt.codigo,
+	tbHistOpt.dtData,
+	tbHistOpt.hrHora,
+	tbHistOpt.strRefeicao,
+	tbHistOpt.codOpt,
+	tbHistOpt.booC,
+	tbOpt.strOpt
+	From 
+	tbHistOpt, tbOpt
+	Where tbHistOpt.codOpt = tbOpt.codigo
+	And booC = 0
+	And tbHistOpt.dtData = ''' + sqlite3_DateTimeForSQL(datetime.date.today()) + ' ' + '''
+	Order By tbHistOpt.hrHora
+	'''
+	df = retPandasDfFromSQL(textSQL)
+	return df
+
+def	retDF_DietaAtualFilterByStrRefeicao(strRefeicao):
+	textSQL = '''
+	Select 
+	tbHistOpt.codigo,
+	tbHistOpt.dtData,
+	tbHistOpt.hrHora,
+	tbHistOpt.strRefeicao,
+	tbHistOpt.codOpt,
+	tbHistOpt.booC,
+	tbOpt.strOpt,
+	tbOpt_Conj.codConj,
+	tbConj.strConjunto
+	From 
+	tbHistOpt, tbOpt, tbOpt_Conj, tbConj
+	Where tbHistOpt.codOpt = tbOpt.codigo
+	And booC = 0
+	And tbOpt_Conj.codOpt = tbHistOpt.codOpt
+	And tbOpt_Conj.codConj = tbConj.codigo
+	And tbHistOpt.dtData = ''' + sqlite3_DateTimeForSQL(datetime.date.today()) + ' ' + '''
+	And tbHistOpt.strRefeicao = ''' + '"' + strRefeicao + '"' + '''
+	Order By tbHistOpt.hrHora
+	'''
+	df = retPandasDfFromSQL(textSQL)
+	return df
+
+	
+def retDF_strConjuntoByCodOpt(codOpt): #Nao estou usando mais
+	textSQL = '''
+	SELECT
+	tbConj.codigo,
+	tbConj.strConjunto
+	FROM
+	tbOpt_Conj, tbConj, tbOpt
+	WHERE
+	tbConj.codigo > 0
+	AND tbOpt_Conj.codConj = tbConj.codigo
+	AND tbOpt_Conj.codOpt = tbOpt.codigo
+	AND tbOpt_Conj.codOpt = ''' + str(codOpt) + ' ' + '''
+	ORDER BY strConjunto
+	'''
+	df = retPandasDfFromSQL(textSQL)
+	return df
+	
+def retStrOptByCodOpt(codOpt):  #Nao estou usando mais
+	conn=sqlite3.connect(strDbFilename)
+	cur=conn.cursor()
+	textSQL = '''
+	SELECT
+	tbOpt.strOpt
+	FROM
+	tbOpt
+	WHERE
+	tbOpt.codigo = 	''' + str(codOpt) + ' '
+	cur.execute(textSQL)
+	row=cur.fetchone()
+	conn.close()
+	return row[0]
+	

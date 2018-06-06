@@ -13,6 +13,5 @@ Porque ai eu coloco a unidade, e já escrevo quantas calorias existem em UMA uni
 Para poder classificar como doce, salgado, etc... para criar tipos a mais de classificações.
 Já alterei o código para incluir o campo novo.
 - Commitei 8a47b0b
-
-30/05
 - Criei o tbConfig. Resolvi guardar as configurações no banco de dados em uma tabela chave:valor
+

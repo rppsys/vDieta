@@ -8,11 +8,15 @@ from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.togglebutton import ToggleButton
+
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 
 from kivy.properties import NumericProperty
 from kivy.properties import StringProperty
+from kivy.properties import ListProperty
+
 from kivy.lang import Builder
 
 
@@ -90,7 +94,8 @@ Builder.load_string('''
             id: rootManager
 
 <widBtnOpt>
-			
+
+<widBtnRef>			
 			
 <scDietaDia>:
     hue: random()
@@ -116,15 +121,10 @@ Builder.load_string('''
         BoxLayout:
 			id: scDietaDia_Buttons_BoxLayout
             orientation: 'vertical'
-            padding: 50
+            padding: 20
             size_hint: 1,.8
             halign: 'center'
             valign: 'middle'
-			Button:
-				text: 'Proximo'
-				on_press: root.proximo()
-			
-			
 			
 <scCCRef>:
     hue: random()
@@ -139,11 +139,37 @@ Builder.load_string('''
 	BoxLayout:
         orientation: 'vertical'
         Label:			
-			id: scCCRef_Mainlabel
-            text: 'Receitas da Refeição'
-            font_size: 40
-            size_hint: 1,0.2
-
+			text: 'Consumir Refeição'
+            font_size: 20
+            size_hint: 1,0.1
+        Label:			
+			id: scCCRef_lbStrRef
+			text: 'Nome da Refeição'
+            font_size: 12
+            size_hint: 1,0.05
+        Label:			
+			text: 'Escolha uma ou mais das receitas abaixo e clique em consumir'
+            font_size: 14
+            size_hint: 1,0.05
+		BoxLayout:
+			id: scCCRef_Buttons_BoxLayout
+			orientation: 'vertical'
+			padding: 10
+			size_hint: 1,.5
+			halign: 'center'
+			valign: 'middle'
+		BoxLayout:
+			orientation: 'vertical'
+			padding: 10
+			size_hint: 1,.3
+			halign: 'center'
+			valign: 'middle'
+			Button:
+				text: 'Consumir'
+				on_press: root.consumir_click()
+			Button:
+				text: 'Voltar'
+			
 <scCC>:
     hue: random()
     canvas:
@@ -238,7 +264,7 @@ Builder.load_string('''
 # Aquivos do Projeto
 
 #Variaveis Globais
-chosenOpt = 0
+toScCCRef_strRefeicao = '#####'
 
 
 # Janelas do Sistema
@@ -273,8 +299,7 @@ class TelaPrincipal(Widget):
         self.ids['rootManager'].transition = SlideTransition(direction="left")
         self.ids['rootManager'].current = 'scAutor'
 
-
-class widBtnOpt(Button):
+class widBtnOpt(Button): # Não estou mais usando
 	global chosenOpt
 	codOpt = NumericProperty(0)
 
@@ -291,41 +316,118 @@ class widBtnOpt(Button):
 		chosenOpt = self.codOpt
 		manager.current = 'scCCRef'
 		
+class widBtnRef(Button):
+	global toScCCRef_strRefeicao
+	
+	strRefeicao = StringProperty('')
+	hrHora = NumericProperty(0)
+	listOpt = ListProperty([])
+	
+	def __init__(self, **kwargs):
+		super(widBtnRef, self).__init__(**kwargs)
+		
+	def iniciar(self,strRefeicao,hrHora):
+		self.strRefeicao = strRefeicao
+		self.hrHora = hrHora
+		self.halign = 'center'
+		self.valign = 'middle'
+		#self.text_size = self.size
+		self.font_size = '20sp'
+		self.markup = True
+		
+	def optAppend(self,strOpt):
+		self.listOpt.append(strOpt)
+
+	def criar(self):
+		textoHora = '[color=ffff00]' + str(self.hrHora) + 'h' + '[/color]'
+		textoRefeicao = '[color=ffff00]' + self.strRefeicao + '[/color]'
+		self.text = '[b]' + textoHora + ': ' + textoRefeicao + '[/b]'
+		for i in self.listOpt:
+			self.text += '\n [i][color=daa520] >>> ' + i + '[/color][/i]'
+		
+	def evento_click(self,manager,*args):
+		global toScCCRef_strRefeicao
+		toScCCRef_strRefeicao = self.strRefeicao
+		manager.current = 'scCCRef'
+
+class widTggConj(ToggleButton):
+	myCodOpt = NumericProperty(0)
+
+	def __init__(self, **kwargs):
+		super(widTggConj, self).__init__(**kwargs)
+
+	def iniciar(self,texto,codOpt):
+		self.myCodOpt = codOpt
+		self.text = '[b][color=daa520] >>> ' + texto + '[/color][/b]'
+		self.group = 'g' + str(codOpt)
+		self.halign = 'center'
+		self.valign = 'middle'
+		self.font_size = '20sp'
+		self.markup = True
+		
 class scDietaDia(Screen):
 	hue = NumericProperty(1)	
-			
-	def proximo(self):
-		self.manager.current = 'scAutor'
 	
 	def	gerarTelaDietaAtual(self,*args):
 		if db.getConfig('DietaAlterada') == '1':
 			auxBoxLayout = self.ids['scDietaDia_Buttons_BoxLayout']
+			auxBoxLayout.clear_widgets()
 			df = db.retDF_DietaAtual()
-			strRefeicao = ''
+			strRefeicao = '#####'
 			for index,row in df.iterrows():
 				if strRefeicao != row['strRefeicao']:
+					if strRefeicao != '#####':
+						btnRef.criar()
+						auxBoxLayout.add_widget(btnRef)
+				
 					strRefeicao = row['strRefeicao']
-					lbRef = Label(text = str(row['hrHora']) + ' ' + strRefeicao)
-					auxBoxLayout.add_widget(lbRef)
-				btnOpt = widBtnOpt()
-				btnOpt.iniciar(row['strOpt'],int(row['codOpt']))
-				btnOpt.bind(on_press = partial(btnOpt.evento_click,self.manager))
-				auxBoxLayout.add_widget(btnOpt)
+					# Cria novo widBtnRef
+					btnRef = widBtnRef()
+					btnRef.bind(on_press = partial(btnRef.evento_click,self.manager))
+					btnRef.iniciar(row['strRefeicao'],row['hrHora'])
+					btnRef.optAppend(row['strOpt'])
+				else:
+					btnRef.optAppend(row['strOpt'])
+
+			# Ao final deve adicionar o último botão criado		
+			if strRefeicao != '#####':
+				btnRef.criar()
+				auxBoxLayout.add_widget(btnRef)					
+
 			db.setConfig('DietaAlterada','0')			
 			# Ao alterar a Dieta Atual seja consumindo algo ou etc, preciso refazer essa tela ou mandar excluir o botao
-			
+		
 class scCCRef(Screen):
-	global chosenOpt
 	hue = NumericProperty(0)
-
-	def gerarTelaCCRef(self,*args):
-		global chosenOpt
-		a = self.ids['scCCRef_Mainlabel']
-		a.text = str(chosenOpt)
-		#Aqui vou pegar a opcao e criar botoes com os conjuntos do tipo toogle para escolher e consumir
-		# Atualizar tbHistOpt, atualizar tbHistConj e voltar pra tela anterior
-
+	listTggConj = ListProperty([])
 	
+	def gerarTelaCCRef(self,*args):
+		global toScCCRef_strRefeicao
+
+		if toScCCRef_strRefeicao != '#####' :
+			lbStrRef = self.ids['scCCRef_lbStrRef']
+			auxBoxLayout = self.ids['scCCRef_Buttons_BoxLayout']
+			
+			lbStrRef.text = toScCCRef_strRefeicao
+			auxBoxLayout.clear_widgets()
+			df = db.retDF_DietaAtualFilterByStrRefeicao(toScCCRef_strRefeicao)
+			self.listTggConj.clear()
+			for index,row in df.iterrows():
+				tggConj = widTggConj()
+				tggConj.iniciar(row['strConjunto'],row['codOpt'])
+				auxBoxLayout.add_widget(tggConj)					
+				self.listTggConj.append(tggConj)
+
+	def consumir_click(self):
+		for tggConj in self.listTggConj:
+			if tggConj.state == 'down':
+				print(tggConj.text)
+				# Consome Conjuntos Selecionados
+				# Tem que apendar tbHistConj
+				# E atualizar em tbHistOpt o booC de cada Opt escolhido para true e mandar redesenhar a tela inicial lá
+				
+				# Isso fica para depois
+				
 class scCC(Screen):
     hue = NumericProperty(0)
 

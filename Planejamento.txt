@@ -120,3 +120,13 @@ scRes
 Na prática devo me preocupar algora com as telas marcadas com um ****** o resto fica para depois.
 
 
+04/06
+
+Está muito com assim, mas eu fiz um botão por Opção.
+E talvez, o que eu realmente vou querer é o que planejei, ou seja, fazer um botão por REFEICAO
+
+E depois criar uma janela para escolher todos os possíveis conjuntos disponíveis naquela refeicao e mandar
+consumir tudo de uma vez.
+
+
+
