@@ -101,7 +101,13 @@ def inicializar(drop,gera):
 	if gera:
 		gerarDB()
 
-	
+
+def reset():
+	dropTable('tbHistOpt')
+	dropTable('tbHistConj')
+	dropTable('tbConfig')
+
+		
 ################################################################################
 								# Funções Principais Banco de Dados
 ################################################################################
@@ -536,7 +542,8 @@ def	retDF_DietaAtual():
 def	retDF_DietaAtualFilterByStrRefeicao(strRefeicao):
 	textSQL = '''
 	Select 
-	tbHistOpt.codigo,
+	tbHistOpt.codigo as codigo,
+	tbHistOpt.codigo as tbHistOpt_codigo,
 	tbHistOpt.dtData,
 	tbHistOpt.hrHora,
 	tbHistOpt.strRefeicao,
@@ -591,3 +598,73 @@ def retStrOptByCodOpt(codOpt):  #Nao estou usando mais
 	conn.close()
 	return row[0]
 	
+def tbHistOpt_ChecaOpt(tbHistOpt_codigo):
+	conn=sqlite3.connect(strDbFilename)
+	cur=conn.cursor()
+	cur.execute("UPDATE tbHistOpt SET booC=1 WHERE codigo=?",(tbHistOpt_codigo,))
+	conn.commit()
+	conn.close()
+	
+def getReceitaFromCodConj(codConj):
+	strRet = ''
+	numCals = 0
+	textSQL = '''
+	SELECT
+	tbConj_Alim.codigo as codigo,
+	tbConj_Alim.codConj as codConj,
+	tbConj.strConjunto,
+	tbConj_Alim.codAlim,
+	tbConj_Alim.numQtd,
+	tbAlim.strUnidade,
+	tbAlim.strAlimento,
+	tbConj_Alim.numQtd * tbAlim.numCaloria as qtdCalorias,
+	tbAlim.numGrupo,
+	tbAlim.booBebida,
+	tbAlim.numTipo
+	FROM
+	tbConj_Alim, tbAlim, tbConj
+	WHERE
+	tbConj_Alim.codigo > 0
+	AND tbConj_Alim.codAlim = tbAlim.codigo
+	AND tbConj_Alim.codConj = tbConj.codigo
+	AND tbConj_Alim.codConj = ''' + str(codConj)
+	df = retPandasDfFromSQL(textSQL)
+	len_df = len(df)
+	if len_df > 0:
+		c = 0
+		for index,row in df.iterrows():
+			c += 1
+			strRet += str(row['numQtd']) + ' ' +  row['strUnidade']
+			if row['numQtd'] > 1:
+				strRet += 's'
+			strRet += ' de ' + row['strAlimento'] 
+			if c < len_df:
+				strRet += ' + '
+
+		# Falta o total de calorias dessa receita
+		conn=sqlite3.connect(strDbFilename)
+		cur=conn.cursor()
+		textSQL = '''
+		SELECT
+		tbConj_Alim.codConj as codigo,
+		SUM(tbConj_Alim.numQtd * tbAlim.numCaloria) as totalCalorias
+		FROM
+		tbConj_Alim, tbAlim
+		WHERE
+		tbConj_Alim.codigo > 0
+		AND tbConj_Alim.codAlim = tbAlim.codigo
+		AND tbConj_Alim.codConj = '''  + str(codConj) + ' ' + '''
+		GROUP BY tbConj_Alim.codConj
+		'''
+		cur.execute(textSQL)
+		row=cur.fetchone()
+		conn.close()
+		numCals = row[1]
+	else:
+		strRet = 'Erro: Conjunto sem alimentos'
+	return strRet, numCals
+
+	
+
+	
+

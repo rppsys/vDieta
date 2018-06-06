@@ -122,11 +122,39 @@ Na prática devo me preocupar algora com as telas marcadas com um ****** o resto
 
 04/06
 
-Está muito com assim, mas eu fiz um botão por Opção.
+Está muito bom assim, mas eu fiz um botão por Opção.
 E talvez, o que eu realmente vou querer é o que planejei, ou seja, fazer um botão por REFEICAO
 
 E depois criar uma janela para escolher todos os possíveis conjuntos disponíveis naquela refeicao e mandar
 consumir tudo de uma vez.
+
+
+06/06
+
+O programa está da forma como planejei no início. Um botão por refeição e depois você escolhe os conjuntos e consome.
+
+Aqui vai agora uma lista de TODOs:
+
+- Melhorar aspectos visuais dos botões da tela scDietaDia Melhorzinho
+- Incluir o meu plano de dieta real
+- Fazer Tela Consumir Receita na qual eu mostro todas as Receitas, formas de filtrar e consumir receitas individuais
+- Fazer Tela Histórico mostrano o tbHistConj filtrado pela data escolhida
+- Compilar para Android e começar a usar no meu Celular
+- Depois eu vou melhorando aos poucos
+
+- Para cada botão Toggle de Conjunto dizer os alimentos e quantidades que aquele conjunto é feito e o grupo a que pertence OK
+
+
+- Preciso fazer Novo Alimento, Novo Conjunto e Forma de Vincular Alimentos e Conjuntos
+
+
+
+
+
+
+
+
+
 
 
 

@@ -11,7 +11,7 @@ from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 
 from kivy.uix.label import Label
-from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition, WipeTransition
 
 from kivy.properties import NumericProperty
 from kivy.properties import StringProperty
@@ -111,17 +111,21 @@ Builder.load_string('''
         orientation: 'vertical'
         Label:
             text: 'Dieta do Dia'
-            padding: 10,10
             halign: 'center'
             valign: 'middle'
-            line_height: '2'
-            font_size: 30
-            text_size: self.size
+            font_size: 20
             size_hint: 1,.2
         BoxLayout:
 			id: scDietaDia_Buttons_BoxLayout
+			canvas:
+				Color:
+					rgba: .0, .5, .0, 1
+				Rectangle:
+					size: self.size
+
             orientation: 'vertical'
-            padding: 20
+            padding: 50,0,50,50
+			spacing: 10
             size_hint: 1,.8
             halign: 'center'
             valign: 'middle'
@@ -140,36 +144,52 @@ Builder.load_string('''
         orientation: 'vertical'
         Label:			
 			text: 'Consumir Refeição'
+            halign: 'center'
+            valign: 'middle'
             font_size: 20
-            size_hint: 1,0.1
+            size_hint: 1,.1
         Label:			
 			id: scCCRef_lbStrRef
 			text: 'Nome da Refeição'
-            font_size: 12
-            size_hint: 1,0.05
-        Label:			
-			text: 'Escolha uma ou mais das receitas abaixo e clique em consumir'
-            font_size: 14
-            size_hint: 1,0.05
+            halign: 'center'
+            valign: 'middle'
+            font_size: 18
+            size_hint: 1,.05
 		BoxLayout:
 			id: scCCRef_Buttons_BoxLayout
+			canvas:
+				Color:
+					rgba: .0, .5, .0, 1
+				Rectangle:
+					size: self.size
 			orientation: 'vertical'
-			padding: 10
-			size_hint: 1,.5
+            padding: 70,20,70,20
+			spacing: 10
+			size_hint: 1,.75
 			halign: 'center'
 			valign: 'middle'
 		BoxLayout:
-			orientation: 'vertical'
-			padding: 10
-			size_hint: 1,.3
+			canvas:
+				Color:
+					rgba: .5, .5, .0, 1
+				Rectangle:
+					size: self.size
+
+			orientation: 'horizontal'
+            padding: 50,5,50,5
+			spacing: 10
+			size_hint: 1,.1
 			halign: 'center'
 			valign: 'middle'
+			
 			Button:
 				text: 'Consumir'
+				font_size: 16
 				on_press: root.consumir_click()
 			Button:
-				text: 'Voltar'
-			
+				text: 'Cancelar'
+				font_size: 16
+				on_press: root.cancelar_click()				
 <scCC>:
     hue: random()
     canvas:
@@ -288,15 +308,15 @@ class TelaPrincipal(Widget):
         self.ids['rootManager'].current = 'scCC'
 
     def mmbHist_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="left")
+        self.ids['rootManager'].transition = SlideTransition(direction="up")
         self.ids['rootManager'].current = 'scHist'
 
     def mmbRes_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="left")
+        self.ids['rootManager'].transition = SlideTransition(direction="down")
         self.ids['rootManager'].current = 'scRes'
 		
     def mmbAutor_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="left")
+        self.ids['rootManager'].transition = WipeTransition()
         self.ids['rootManager'].current = 'scAutor'
 
 class widBtnOpt(Button): # Não estou mais usando
@@ -331,7 +351,7 @@ class widBtnRef(Button):
 		self.hrHora = hrHora
 		self.halign = 'center'
 		self.valign = 'middle'
-		#self.text_size = self.size
+		self.text_size = 300, None
 		self.font_size = '20sp'
 		self.markup = True
 		
@@ -348,22 +368,31 @@ class widBtnRef(Button):
 	def evento_click(self,manager,*args):
 		global toScCCRef_strRefeicao
 		toScCCRef_strRefeicao = self.strRefeicao
+		manager.transition = SlideTransition(direction="left")
 		manager.current = 'scCCRef'
 
 class widTggConj(ToggleButton):
-	myCodOpt = NumericProperty(0)
-
+	meuCodigo = NumericProperty(0)
+	meuCodOpt = NumericProperty(0)
+	meuCodConj = NumericProperty(0)
+	
 	def __init__(self, **kwargs):
 		super(widTggConj, self).__init__(**kwargs)
 
-	def iniciar(self,texto,codOpt):
-		self.myCodOpt = codOpt
-		self.text = '[b][color=daa520] >>> ' + texto + '[/color][/b]'
+	def iniciar(self,texto,tbHistOpt_codigo,codOpt,codConj):
+		self.meuCodigo = tbHistOpt_codigo
+		self.meuCodOpt = codOpt
+		self.meuCodConj = codConj
 		self.group = 'g' + str(codOpt)
 		self.halign = 'center'
 		self.valign = 'middle'
-		self.font_size = '20sp'
+		self.font_size = '18sp'
+		self.text_size = 300, None
 		self.markup = True
+		strReceita,numCals = db.getReceitaFromCodConj(codConj)
+		textoConjunto = '[b][color=ffff00] >>> ' + texto + ': ' + str(numCals) + ' KCal' + '[/color][/b]'
+		textoReceita = '[size=14][i][color=daa520]' + strReceita + '[/color][/i][/size]'
+		self.text = textoConjunto + '\n' + textoReceita
 		
 class scDietaDia(Screen):
 	hue = NumericProperty(1)	
@@ -373,30 +402,34 @@ class scDietaDia(Screen):
 			auxBoxLayout = self.ids['scDietaDia_Buttons_BoxLayout']
 			auxBoxLayout.clear_widgets()
 			df = db.retDF_DietaAtual()
-			strRefeicao = '#####'
-			for index,row in df.iterrows():
-				if strRefeicao != row['strRefeicao']:
-					if strRefeicao != '#####':
-						btnRef.criar()
-						auxBoxLayout.add_widget(btnRef)
-				
-					strRefeicao = row['strRefeicao']
-					# Cria novo widBtnRef
-					btnRef = widBtnRef()
-					btnRef.bind(on_press = partial(btnRef.evento_click,self.manager))
-					btnRef.iniciar(row['strRefeicao'],row['hrHora'])
-					btnRef.optAppend(row['strOpt'])
-				else:
-					btnRef.optAppend(row['strOpt'])
+			
+			if len(df) != 0:
+				strRefeicao = '#####'
+				for index,row in df.iterrows():
+					if strRefeicao != row['strRefeicao']:
+						if strRefeicao != '#####':
+							btnRef.criar()
+							auxBoxLayout.add_widget(btnRef)
+					
+						strRefeicao = row['strRefeicao']
+						# Cria novo widBtnRef
+						btnRef = widBtnRef()
+						btnRef.bind(on_press = partial(btnRef.evento_click,self.manager))
+						btnRef.iniciar(row['strRefeicao'],row['hrHora'])
+						btnRef.optAppend(row['strOpt'])
+					else:
+						btnRef.optAppend(row['strOpt'])
 
-			# Ao final deve adicionar o último botão criado		
-			if strRefeicao != '#####':
-				btnRef.criar()
-				auxBoxLayout.add_widget(btnRef)					
+				# Ao final deve adicionar o último botão criado		
+				if strRefeicao != '#####':
+					btnRef.criar()
+					auxBoxLayout.add_widget(btnRef)					
+				db.setConfig('DietaAlterada','0')			
+				# Ao alterar a Dieta Atual seja consumindo algo ou etc, preciso refazer essa tela ou mandar excluir o botao
+			else:
+				lbAux = Label(text='Você já consumiu todos os alimentos de hoje!')
+				auxBoxLayout.add_widget(lbAux)
 
-			db.setConfig('DietaAlterada','0')			
-			# Ao alterar a Dieta Atual seja consumindo algo ou etc, preciso refazer essa tela ou mandar excluir o botao
-		
 class scCCRef(Screen):
 	hue = NumericProperty(0)
 	listTggConj = ListProperty([])
@@ -414,7 +447,7 @@ class scCCRef(Screen):
 			self.listTggConj.clear()
 			for index,row in df.iterrows():
 				tggConj = widTggConj()
-				tggConj.iniciar(row['strConjunto'],row['codOpt'])
+				tggConj.iniciar(row['strConjunto'],row['tbHistOpt_codigo'],row['codOpt'],row['codConj'])
 				auxBoxLayout.add_widget(tggConj)					
 				self.listTggConj.append(tggConj)
 
@@ -422,12 +455,18 @@ class scCCRef(Screen):
 		for tggConj in self.listTggConj:
 			if tggConj.state == 'down':
 				print(tggConj.text)
-				# Consome Conjuntos Selecionados
 				# Tem que apendar tbHistConj
-				# E atualizar em tbHistOpt o booC de cada Opt escolhido para true e mandar redesenhar a tela inicial lá
-				
-				# Isso fica para depois
-				
+				db.append('tbHistConj',(db.sqlite3_DateTimeForSQL(datetime.date.today()),0,tggConj.meuCodConj,tggConj.meuCodOpt,))
+				# TODO: DEPOIS TEM QUE COLOCAR A HORA CERTINHO
+				db.tbHistOpt_ChecaOpt(tggConj.meuCodigo)
+		db.setConfig('DietaAlterada','1')
+		self.manager.transition = SlideTransition(direction="right")
+		self.manager.current = 'scDietaDia'
+
+	def cancelar_click(self):
+		self.manager.transition = SlideTransition(direction="right")
+		self.manager.current = 'scDietaDia'
+		
 class scCC(Screen):
     hue = NumericProperty(0)
 
