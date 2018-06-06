@@ -101,7 +101,6 @@ def inicializar(drop,gera):
 	if gera:
 		gerarDB()
 
-
 def reset():
 	dropTable('tbHistOpt')
 	dropTable('tbHistConj')
@@ -664,7 +663,20 @@ def getReceitaFromCodConj(codConj):
 		strRet = 'Erro: Conjunto sem alimentos'
 	return strRet, numCals
 
-	
-
-	
-
+def conjuntoDictToRV():
+	textSQL = '''
+	Select 
+	tbConj.codigo as codigo,
+	tbConj.strConjunto
+	From 
+	tbConj
+	'''
+	df = retPandasDfFromSQL(textSQL)
+	listaDict = []
+	dictR = {}
+	for index,row in df.iterrows():
+		dictR['text'] = '[color=ffff33]{0:12}[/color]'.format(row['strConjunto'])
+		dictR['codigo'] = index
+		listaDict.append(dictR)
+		dictR = {}
+	return listaDict	

@@ -4,21 +4,32 @@ from functools import partial
 
 # Bibliotecas Kivy
 from kivy.app import App
+
 from kivy.uix.widget import Widget
+
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
+
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
-
 from kivy.uix.label import Label
+
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition, WipeTransition
 
+# Bibliotecas Properties
 from kivy.properties import NumericProperty
 from kivy.properties import StringProperty
 from kivy.properties import ListProperty
+from kivy.properties import BooleanProperty
+
+# Bibliotecas Recycled View
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 
 from kivy.lang import Builder
-
 
 Builder.load_string('''
 #:import random random.random
@@ -92,11 +103,7 @@ Builder.load_string('''
                 pos: self.pos
         ScreenManager:
             id: rootManager
-
-<widBtnOpt>
-
-<widBtnRef>			
-			
+	
 <scDietaDia>:
     hue: random()
     canvas:
@@ -198,13 +205,49 @@ Builder.load_string('''
         Rectangle:
             size: self.size
 
-    BoxLayout:
+	on_pre_enter: root.gerarTelaCC()			
+			
+	BoxLayout:
         orientation: 'vertical'
         Label:
             text: 'Consumir Receita'
             font_size: 40
-            size_hint: 1,0.2
+            size_hint: 1,0.1
+		BoxLayout:
+			orientation: 'horizontal'
+			canvas:
+				Color:
+					rgba: .0, .8, .0, 1
+				Rectangle:
+					size: self.size
+			RV:
+				id: scCC_rvConjunto
+				size_hint: 1,1
 
+			RV:
+				id: scCC_rvAlimento
+				size_hint: 1,1
+		BoxLayout:
+			canvas:
+				Color:
+					rgba: .5, .5, .0, 1
+				Rectangle:
+					size: self.size
+
+			orientation: 'horizontal'
+            padding: 50,5,50,5
+			spacing: 10
+			size_hint: 1,.1
+			halign: 'center'
+			valign: 'middle'
+			
+			Button:
+				text: 'Consumir'
+				font_size: 16
+				
+			Button:
+				text: 'Cancelar'
+				font_size: 16
 <scHist>:
     hue: random()
     canvas:
@@ -279,6 +322,24 @@ Builder.load_string('''
                         text: 'Autor: Ronie Porfirio'
                         font_name: "autorFonte.ttf"
                         valign: 'bottom'
+						
+<SelectableLabel>:
+	canvas.before:
+		Color:
+			rgba: (.0, 0.9, .1, .3) if self.selected else (0, 0, .2, 1)
+		Rectangle:
+			pos: self.pos
+			size: self.size
+<RV>:
+	viewclass: 'SelectableLabel'
+	SelectableRecycleBoxLayout:
+		default_size: None, dp(56)
+		default_size_hint: 1, None
+		size_hint_y: None
+		height: self.minimum_height
+		orientation: 'vertical'
+		multiselect: True
+		touch_multiselect: True
 ''')
 
 # Aquivos do Projeto
@@ -286,38 +347,9 @@ Builder.load_string('''
 #Variaveis Globais
 toScCCRef_strRefeicao = '#####'
 
-
-# Janelas do Sistema
-class TelaPrincipal(Widget):
-    def returnFloatLayout(self):
-        return self.ids['rootFloatLayout']
-
-    def returnScreenManager(self):
-        return self.ids['rootManager']
-
-    def mmbDietaDia_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="right")
-        self.ids['rootManager'].current = 'scDietaDia'
-
-    def mmbCCRef_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="left")
-        self.ids['rootManager'].current = 'scCCRef'
-
-    def mmbCC_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="left")
-        self.ids['rootManager'].current = 'scCC'
-
-    def mmbHist_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="up")
-        self.ids['rootManager'].current = 'scHist'
-
-    def mmbRes_Click(self):
-        self.ids['rootManager'].transition = SlideTransition(direction="down")
-        self.ids['rootManager'].current = 'scRes'
-		
-    def mmbAutor_Click(self):
-        self.ids['rootManager'].transition = WipeTransition()
-        self.ids['rootManager'].current = 'scAutor'
+###############################################################################
+################################         Widgets 
+###############################################################################
 
 class widBtnOpt(Button): # Não estou mais usando
 	global chosenOpt
@@ -393,6 +425,83 @@ class widTggConj(ToggleButton):
 		textoConjunto = '[b][color=ffff00] >>> ' + texto + ': ' + str(numCals) + ' KCal' + '[/color][/b]'
 		textoReceita = '[size=14][i][color=daa520]' + strReceita + '[/color][/i][/size]'
 		self.text = textoConjunto + '\n' + textoReceita
+
+
+# Para as tabelas		
+		
+class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,RecycleBoxLayout):
+	''' Nada '''
+
+	
+class SelectableLabel(RecycleDataViewBehavior, Label):
+	''' Add selection support to the Label '''
+	index = None
+	selected = BooleanProperty(False)
+	selectable = BooleanProperty(True)
+	font_size = 18
+	markup = True
+	
+	def refresh_view_attrs(self, rv, index, data):
+		''' Catch and handle the view changes '''
+		self.index = index
+		return super(SelectableLabel, self).refresh_view_attrs(rv, index, data)
+
+	def on_touch_down(self, touch):
+		''' Add selection on touch down '''
+		if super(SelectableLabel, self).on_touch_down(touch):
+			return True
+		if self.collide_point(*touch.pos) and self.selectable:
+			return self.parent.select_with_touch(self.index, touch)
+
+	def apply_selection(self, rv, index, is_selected):
+		''' Respond to the selection of items in the view. '''
+		self.selected = is_selected
+		if is_selected:
+			pass
+			#print("selection changed to {0}".format(rv.data[index]))
+		#else:
+			#print("selection removed for {0}".format(rv.data[index]))
+
+class RV(RecycleView):
+	def __init__(self, **kwargs):
+		super(RV, self).__init__(**kwargs)
+		#self.data = [{'text': str(x)} for x in range(100)]		
+		
+		
+###############################################################################
+################################ Janelas do Sistema
+###############################################################################
+
+class TelaPrincipal(Widget):
+    def returnFloatLayout(self):
+        return self.ids['rootFloatLayout']
+
+    def returnScreenManager(self):
+        return self.ids['rootManager']
+
+    def mmbDietaDia_Click(self):
+        self.ids['rootManager'].transition = SlideTransition(direction="right")
+        self.ids['rootManager'].current = 'scDietaDia'
+
+    def mmbCCRef_Click(self):
+        self.ids['rootManager'].transition = SlideTransition(direction="left")
+        self.ids['rootManager'].current = 'scCCRef'
+
+    def mmbCC_Click(self):
+        self.ids['rootManager'].transition = SlideTransition(direction="left")
+        self.ids['rootManager'].current = 'scCC'
+
+    def mmbHist_Click(self):
+        self.ids['rootManager'].transition = SlideTransition(direction="up")
+        self.ids['rootManager'].current = 'scHist'
+
+    def mmbRes_Click(self):
+        self.ids['rootManager'].transition = SlideTransition(direction="down")
+        self.ids['rootManager'].current = 'scRes'
+		
+    def mmbAutor_Click(self):
+        self.ids['rootManager'].transition = WipeTransition()
+        self.ids['rootManager'].current = 'scAutor'
 		
 class scDietaDia(Screen):
 	hue = NumericProperty(1)	
@@ -468,8 +577,11 @@ class scCCRef(Screen):
 		self.manager.current = 'scDietaDia'
 		
 class scCC(Screen):
-    hue = NumericProperty(0)
-
+	hue = NumericProperty(0)
+	def gerarTelaCC(self,*args):
+		rvConjunto = self.ids['scCC_rvConjunto']
+		rvConjunto.data = db.conjuntoDictToRV()
+	
 class scHist(Screen):
     hue = NumericProperty(0)
 
