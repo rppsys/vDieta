@@ -141,11 +141,54 @@ Aqui vai agora uma lista de TODOs:
 - Fazer Tela Histórico mostrano o tbHistConj filtrado pela data escolhida
 - Compilar para Android e começar a usar no meu Celular
 - Depois eu vou melhorando aos poucos
-
 - Para cada botão Toggle de Conjunto dizer os alimentos e quantidades que aquele conjunto é feito e o grupo a que pertence OK
-
-
 - Preciso fazer Novo Alimento, Novo Conjunto e Forma de Vincular Alimentos e Conjuntos
+
+Histórico
+Forma de Criar Conjuntos Vinculando os Alimentos
+
+
+***********
+Preciso inserir,alterar e excluir alimentos.
+Mas no fundo não vou deixar alterar nem excluir alimentos que estejam sendo usados em conjuntos.
+
+Preciso inserir,alterar e excluir conjuntos.
+Mas para isso, preciso mostrar os conjuntos, os alimentos que fazem parte desse conjunto junto das quantidades.
+
+Permitir modificar os conjuntos adicionando ou removendo alimentos nas quantidades.
+
+Tudo isso é algo que eu PRECISO fazer se quiser distribuir o programa.
+*******************
+
+Mas o que eu preciso fazer AGORA para ser capaz de usar eu mesmo esse programa?
+
+- Mostrar o Histórico 
+- Ser capaz de incluir novos conjuntos 
+- Ser capaz de incluir novos alimentos 
+- Colocar um campo novo no tbConj para contar a qtd de vezes que aquele conjunto foi consumido fora da dieta. 
+
+
+Então eu queria fazer um formulário para inserir alimentos e ao mesmo tempo, conseguir criar novos conjuntos a partir deles.
+O mesmo form de inserção de alimentos eu posso usar para criar novos conjuntos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

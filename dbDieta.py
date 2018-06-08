@@ -563,7 +563,6 @@ def	retDF_DietaAtualFilterByStrRefeicao(strRefeicao):
 	'''
 	df = retPandasDfFromSQL(textSQL)
 	return df
-
 	
 def retDF_strConjuntoByCodOpt(codOpt): #Nao estou usando mais
 	textSQL = '''
@@ -675,8 +674,58 @@ def conjuntoDictToRV():
 	listaDict = []
 	dictR = {}
 	for index,row in df.iterrows():
-		dictR['text'] = '[color=ffff33]{0:12}[/color]'.format(row['strConjunto'])
+		auxReceita, numCals = getReceitaFromCodConj(index)
+		dictR['text'] = '[b][color=ffd700]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(row['strConjunto'],auxReceita,numCals)
 		dictR['codigo'] = index
+		dictR['booSel'] = 0
 		listaDict.append(dictR)
 		dictR = {}
-	return listaDict	
+	return listaDict
+
+def getListDictForTableRVFromTbTable(tbTable):
+	global dictTables
+	hab = False
+	# Valida
+	if tbTable in dictTables:
+		hab = True
+	else:
+		print('Erro no append: Tabela não existe')
+	# Passou nos testes
+	if hab:
+		# Cria código SQL para a tabela
+		textSQL = 'SELECT '
+		textSQL += tbTable + '.' + 'codigo as codigo, '
+		for strField,strType in dictTables[tbTable].items():
+			textSQL += tbTable + '.' + strField + ', '
+		textSQL = textSQL[:-2] + ' '
+		textSQL += 'FROM '
+		textSQL += tbTable
+		# Cria ListDict	
+		df = retPandasDfFromSQL(textSQL)
+		listaDict = []
+		dictR = {}
+		strSep = ' '
+		for index,row in df.iterrows():
+			auxText = '{0:5}'.format(str(index)) + strSep		
+			for strField,strType in dictTables[tbTable].items():
+				nF = ''
+				if strType == 'INTEGER':
+					nF = '5'
+				elif strType == 'TEXT':
+					nF = '10'
+				else:
+					nF = '10'
+		
+				strFormat = '{0:' + str(nF) + '}' 
+				auxText += strFormat.format(row[strField]) + strSep
+				dictR[strField] = row[strField]
+			# Depois posso melhorar pegando para cada coluna o maior length e usando isso como nF
+			auxText = auxText[:-1 * len(strSep)]
+			dictR['text'] = auxText
+			dictR['codigo'] = index
+			dictR['booSel'] = 0
+			listaDict.append(dictR)
+			dictR = {}
+		return listaDict
+	else:
+		return []
