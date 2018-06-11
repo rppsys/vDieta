@@ -9,6 +9,51 @@ import pandas as pd
 strDbFilename = "dbDieta.db"
 dictTables = dict()
 
+listTipoValues = [
+	'00 - Natural e Saudável',
+	'01 - Doces com Lactose',
+	'02 - Doces sem Lactose',
+	'03 - Refrigerante',
+	'05 - Açucares'
+	]
+
+listGrupoValues = [
+	'00 - Nenhum Grupo',
+	'01 - Vegetais A',
+	'02 - Vegetais B',
+	'03 - Frutas Frescas',
+	'04 - Carnes',
+	'05 - Ovos',
+	'06 - Gorduras',
+	'07 - Cereais e Vegetais C',
+	'08 - Leguminosas',
+	'09 - Leites e Derivados',
+	'10 - Queijos',
+	'11 - Embutidos',
+	'12 - Castanhas e Oleaginosas',
+	'13 - Frutas Secas',
+	'14 - Grãos e Farinhas'		
+	]
+		
+listUnidadeValues = [
+	'unid',
+	'fatia',
+	'porção',
+	'barra',
+	'col de sopa',
+	'col de chá',
+	'concha P',
+	'concha M',
+	'concha G',
+	'xícara de chá',
+	'copo de 300 ml',
+	'copo de 500 ml'
+	]
+		
+hl_a = []
+hl_c = []
+hl_o = []
+
 ################################################################################
 								# Funções Auxiliares Banco de Dados
 ################################################################################
@@ -28,9 +73,18 @@ def getDataHoje():
 	return datetime.date.today()
 	#return datetime.date(2018,1,16)
 
-def sqlite3_DateTimeForSQL(dtData):
+def getDataHoraHoje():
+	return datetime.datetime.today()
+	
+def sqlite3_DateForSQL(dtData):
 	strRet = "'{0:04}-{1:02}-{2:02}'".format(dtData.year,dtData.month,dtData.day)
 	return strRet
+	
+	
+def sqlite3_TimeForSQL(hrHora):
+	strRet = "'{0:02}:{1:02}:{2:02}'".format(hrHora.hour,hrHora.minute,hrHora.second)
+	return strRet
+	
 	
 def getWeekDay(dtData):
 	'Domingo começa em 1 até sábado igual a 7'
@@ -121,10 +175,11 @@ def defineTables():
 	dictAuxFields = {
 	'strAlimento':'TEXT',
 	'strUnidade':'TEXT',
-	'numCaloria':'INTEGER',
+	'numCaloria':'REAL',
 	'numGrupo':'INTEGER',
 	'booBebida':'INTEGER',
-	'numTipo':'INTEGER'
+	'numTipo':'INTEGER',
+	'numPeso':'REAL'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -132,7 +187,8 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbConj'
 	dictAuxFields = {
-	'strConjunto':'TEXT'
+	'strConjunto':'TEXT',
+	'numFreq':'INTEGER'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -340,33 +396,51 @@ def view(tbTable):
 	conn.close()
 	return rows
 
-def insAlimUn(strAlimento,strUnidade,numCaloria,numGrupo,booBebida,numTipo,numQtd):
-	a = append('tbAlim',(strAlimento,strUnidade,numCaloria,numGrupo,booBebida,numTipo,))
-	c = append('tbConj',(strAlimento,))
+	
+
+def hardInsReset():
+	global hl_a
+	global hl_c
+	global hl_o
+	hl_a = []
+	hl_c = []
+	hl_o = []
+	
+def insAlimUn(strAlimento,strUnidade,numCaloria,numGrupo,booBebida,numTipo,numPeso,numQtd):
+	global hl_a
+	global hl_c
+	global hl_o
+	a = append('tbAlim',(strAlimento,strUnidade,numCaloria,numGrupo,booBebida,numTipo,numPeso,))
+	c = append('tbConj',(strAlimento,0,))
 	append('tbConj_Alim',(c,a,numQtd,))
 	o = append('tbOpt',(strAlimento,))
 	append('tbOpt_Conj',(o,c))	
+	hl_a.append(a)
+	hl_c.append(c)
+	hl_o.append(o)
 	return a,c,o
 	
 def hardInsertExemplos():
-	# Alimentos, Conjuntos e Opções
-	a1,c1,o1 = insAlimUn('Café','ml',0,0,1,0,100)
-	a2,c2,o2 = insAlimUn('Pão de forma integral','fatia',0,7,0,0,1)
-	a3,c3,o3 = insAlimUn('Cuscuz','col de sopa',0,7,0,0,2)
-	a4,c4,o4 = insAlimUn('Ovo','unid',0,5,0,0,2)
-	a5,c5,o5 = insAlimUn('Frango','col de sopa',0,4,0,0,3)
-	a6,c6,o6 = insAlimUn('Atum','col de sopa',0,4,0,0,3)
-	a7,c7,o7 = insAlimUn('Frutas Frescas','porção',0,3,0,0,1,)
-	a8,c8,o8 = insAlimUn('Castanhas','porção',0,3,0,0,1,)
+	hardInsReset()
 
-	c9 = append('tbConj',('Sanduiche c/ Ovo',))
+# Alimentos, Conjuntos e Opções
+	a1,c1,o1 = insAlimUn('Café','ml',0,0,1,0,0,100,)
+	a2,c2,o2 = insAlimUn('Pão de forma integral','fatia',0,7,0,0,0,1,)
+	a3,c3,o3 = insAlimUn('Cuscuz','col de sopa',0,7,0,0,0,2,)
+	a4,c4,o4 = insAlimUn('Ovo','unid',0,5,0,0,0,2,)
+	a5,c5,o5 = insAlimUn('Frango','col de sopa',0,4,0,0,0,3,)
+	a6,c6,o6 = insAlimUn('Atum','col de sopa',0,4,0,0,0,3,)
+	a7,c7,o7 = insAlimUn('Frutas Frescas','porção',0,3,0,0,0,1,)
+	a8,c8,o8 = insAlimUn('Castanhas','porção',0,3,0,0,0,1,)
+
+	c9 = append('tbConj',('Sanduiche c/ Ovo',0,))
 	append('tbConj_Alim',(c9,a2,2,))
 	append('tbConj_Alim',(c9,a4,1,))
 	append('tbConj_Alim',(c9,a5,1,))
 	o9 = append('tbOpt',('Sanduiche c/ ovo',))
 	append('tbOpt_Conj',(o9,c9,))	
 
-	c10 = append('tbConj',('Sanduiche s/ Ovo',))
+	c10 = append('tbConj',('Sanduiche s/ Ovo',0,))
 	append('tbConj_Alim',(c10,a2,2,))
 	append('tbConj_Alim',(c10,a5,1,))
 	o10 = append('tbOpt',('Sanduiche s/ ovo',))
@@ -428,7 +502,11 @@ def hardInsertExemplos():
 	append('tbPlan_Ref',(p1,r1,7))
 	append('tbPlan_Ref',(p1,r2,7))
 	append('tbPlan_Ref',(p1,r3,7))
-	append('tbPlan_Ref',(p1,r4,7))
+	append('tbPlan_Ref',(p1,r4,7))	
+	
+	
+	
+	
 	
 def getConfig(strKey):
 	conn=sqlite3.connect(strDbFilename)
@@ -467,7 +545,7 @@ def initDB():
 	#Verifica se já inicializei a data de hoje
 	dtHoje = getDataHoje()
 	strUltimoAcesso = getConfig('strUltimoAcesso')
-	if strUltimoAcesso != sqlite3_DateTimeForSQL(dtHoje):
+	if strUltimoAcesso != sqlite3_DateForSQL(dtHoje):
 		# Inicializações de novo dia: Preciso criar tbHistOpt
 		numWeek = getWeekDay(dtHoje)
 		numPlan = nC('tbPlan') - 1
@@ -495,7 +573,7 @@ def initDB():
 			append('tbHistOpt',(dtHoje,row['hrHora'],row['strRefeicao'],int(row['codOpt']),0,))
 		
 		# Avisa que já inicializou o dia de hoje
-		setConfig('strUltimoAcesso',sqlite3_DateTimeForSQL(dtHoje))
+		setConfig('strUltimoAcesso',sqlite3_DateForSQL(dtHoje))
 		setConfig('DietaAlterada','1')
 
 def	retDF_DietaAtual():
@@ -512,7 +590,7 @@ def	retDF_DietaAtual():
 	tbHistOpt, tbOpt
 	Where tbHistOpt.codOpt = tbOpt.codigo
 	And booC = 0
-	And tbHistOpt.dtData = ''' + sqlite3_DateTimeForSQL(datetime.date.today()) + ' ' + '''
+	And tbHistOpt.dtData = ''' + sqlite3_DateForSQL(datetime.date.today()) + ' ' + '''
 	Order By tbHistOpt.hrHora
 	'''
 	df = retPandasDfFromSQL(textSQL)
@@ -532,7 +610,7 @@ def	retDF_DietaAtual():
 	tbHistOpt, tbOpt
 	Where tbHistOpt.codOpt = tbOpt.codigo
 	And booC = 0
-	And tbHistOpt.dtData = ''' + sqlite3_DateTimeForSQL(datetime.date.today()) + ' ' + '''
+	And tbHistOpt.dtData = ''' + sqlite3_DateForSQL(datetime.date.today()) + ' ' + '''
 	Order By tbHistOpt.hrHora
 	'''
 	df = retPandasDfFromSQL(textSQL)
@@ -557,7 +635,7 @@ def	retDF_DietaAtualFilterByStrRefeicao(strRefeicao):
 	And booC = 0
 	And tbOpt_Conj.codOpt = tbHistOpt.codOpt
 	And tbOpt_Conj.codConj = tbConj.codigo
-	And tbHistOpt.dtData = ''' + sqlite3_DateTimeForSQL(datetime.date.today()) + ' ' + '''
+	And tbHistOpt.dtData = ''' + sqlite3_DateForSQL(datetime.date.today()) + ' ' + '''
 	And tbHistOpt.strRefeicao = ''' + '"' + strRefeicao + '"' + '''
 	Order By tbHistOpt.hrHora
 	'''
@@ -600,6 +678,16 @@ def tbHistOpt_ChecaOpt(tbHistOpt_codigo):
 	conn=sqlite3.connect(strDbFilename)
 	cur=conn.cursor()
 	cur.execute("UPDATE tbHistOpt SET booC=1 WHERE codigo=?",(tbHistOpt_codigo,))
+	conn.commit()
+	conn.close()
+
+def tbConj_incNumFreq(codConj):
+	conn=sqlite3.connect(strDbFilename)
+	cur=conn.cursor()
+	cur.execute("SELECT numFreq FROM tbConj WHERE codigo = " + str(codConj))
+	row = cur.fetchone()
+	numFreq = row[0] + 1
+	cur.execute("UPDATE tbConj SET numFreq=? WHERE codigo=?",(numFreq,codConj,))
 	conn.commit()
 	conn.close()
 	
@@ -682,7 +770,7 @@ def conjuntoDictToRV():
 		dictR = {}
 	return listaDict
 
-def getListDictForTableRVFromTbTable(tbTable):
+def getListDictForTableRVFromTbTable(tbTable,strFilter):
 	global dictTables
 	hab = False
 	# Valida
@@ -700,6 +788,9 @@ def getListDictForTableRVFromTbTable(tbTable):
 		textSQL = textSQL[:-2] + ' '
 		textSQL += 'FROM '
 		textSQL += tbTable
+		if strFilter != '':
+			textSQL += ' ' + strFilter
+		
 		# Cria ListDict	
 		df = retPandasDfFromSQL(textSQL)
 		listaDict = []
@@ -729,3 +820,21 @@ def getListDictForTableRVFromTbTable(tbTable):
 		return listaDict
 	else:
 		return []
+		
+def getListDictForTableRVFromTextSQL(textSQL):
+	df = retPandasDfFromSQL(textSQL)
+	listaDict = []
+	dictR = {}
+	strSep = ' '
+	for index,row in df.iterrows():
+		auxText = '{0}'.format(str(index)) + strSep		
+		for strField in df.columns:
+			dictR[strField] = row[strField]
+			auxText += str(row[strField]) + strSep
+		auxText = auxText[:-1 * len(strSep)]
+		dictR['text'] = auxText
+		dictR['codigo'] = index
+		dictR['booSel'] = 0
+		listaDict.append(dictR)
+		dictR = {}
+	return listaDict

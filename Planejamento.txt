@@ -172,6 +172,11 @@ Então eu queria fazer um formulário para inserir alimentos e ao mesmo tempo, c
 O mesmo form de inserção de alimentos eu posso usar para criar novos conjuntos.
 
 
+09/06
+
+Acho que vou precisar mudar todos os hrHora para TEXT e alterar todo o código para possibilitar colocar horas em formato quebrado.
+
+Na interface de Resumos usar o carrousel para alternar as imagens.
 
 
 

@@ -53,6 +53,8 @@ Builder.load_string('''
 #:import TextInput kivy.uix.textinput.TextInput
 
 #:set lbPrinc_fs 30
+#:set grid6_shx .5
+
 
 <TelaPrincipal>:
     canvas:
@@ -238,7 +240,79 @@ Builder.load_string('''
             font_size: lbPrinc_fs
 		multiRV:
 			id: scCC_rvReceitas
-			size_hint: 1,0.7
+			size_hint: 1,0.5
+		BoxLayout:
+			size_hint: 1,0.2
+			orientation: 'vertical'
+			BoxLayout: #Caption e Bebida
+				size_hint: 1,.4
+				orientation: 'horizontal'
+				Label:
+					size_hint: 0.8,1
+					text: 'Filtrar:'			
+					text_size: self.size
+					halign: 'left'
+					valign: 'top'
+					font_size: 18
+				BoxLayout:
+					size_hint: 0.2,1
+					orientation: 'horizontal'
+					CheckBox:
+						id: scCC_checkBebida
+						size_hint_x: .2
+						on_active: root.atualizaRVConjunto()
+					Label:
+						text: 'Bebida'
+					CheckBox:
+						id: scCC_checkBebidaEstado
+						on_active: if scCC_checkBebida.active: root.atualizaRVConjunto()
+			BoxLayout: #Demais Filtros
+				size_hint: 1,0.6
+				orientation: 'horizontal'
+				BoxLayout:
+					orientation: 'vertical'
+					GridLayout:
+						cols: 2
+						CheckBox:
+							id: scCC_checkAlimento
+							size_hint_x: .2
+							on_active: root.atualizaRVConjunto()
+						Label:
+							text: 'Alimento:'
+					TextInput:
+						id: scCC_txtAlimento
+						text: ''
+						hint_text: 'Digite o alimento'
+						multiline: False
+						on_text: if scCC_checkAlimento.active: root.atualizaRVConjunto()
+				BoxLayout:
+					orientation: 'vertical'
+					GridLayout:
+						cols: 2
+						CheckBox:
+							id: scCC_checkGrupo
+							size_hint_x: .2
+							on_active: root.atualizaRVConjunto()
+						Label:
+							text: 'Grupo:'
+					Spinner:
+						id: scCC_spinGrupo
+						text: '00 - Nenhum Grupo'
+						on_text: if scCC_checkGrupo.active: root.atualizaRVConjunto() 
+				BoxLayout:
+					orientation: 'vertical'
+					GridLayout:
+						cols: 2
+						CheckBox:
+							id: scCC_checkTipo
+							size_hint_x: .2
+							on_active: root.atualizaRVConjunto()
+						Label:
+							text: 'Tipo:'
+					Spinner:
+						id: scCC_spinTipo
+						text: '00 - Nenhum Tipo'
+						on_text: if scCC_checkTipo.active: root.atualizaRVConjunto() 
 		GridLayout:
 			cols: 1
 			size_hint: 1,0.1
@@ -290,58 +364,71 @@ Builder.load_string('''
             font_size: lbPrinc_fs
 		tableRV:
 			id: scCadAlim_rvAlimentos
-			size_hint: 1,0.6
+			size_hint: 1,0.5
 		BoxLayout:
-			size_hint: 1,0.2
+			size_hint: 1,0.3
 			orientation: 'vertical'
-			Label:
-				size_hint: 1,0.3
-				valign: 'center'
-				halign: 'left'
-				text_size: self.size
-				text: 'Cadastrar novos alimentos'
-				font_size: 18
 			GridLayout:
-				cols: 6
-				size_hint: 1,0.5
+				cols: 4
+				size_hint: 1,0.6
 				Label:
-					text: 'Alimento:'
+					text: 'Nome:'
+					size_hint_x: grid6_shx
 				TextInput:
 					id: scCadAlim_txtAlimento
 					multiline: False
 					text: ''
 				Label:
+					text: 'Bebida?'
+					size_hint_x: grid6_shx
+				CheckBox:
+					id: scCadAlim_checkBebida
+				Label:
 					text: 'Grupo:'
+					size_hint_x: grid6_shx
 				Spinner:
 					id: scCadAlim_spinGrupo
 					text: '00 - Nenhum Grupo'
 				Label:
 					text: 'Tipo:'
+					size_hint_x: grid6_shx
 				Spinner:
 					id: scCadAlim_spinTipo
 					text: '00 - Saudável'
 				Label:
-					text: 'Quantidade:'
+					text: 'Qtd:'
+					size_hint_x: grid6_shx
 				TextInput:
 					id: scCadAlim_txtQuantidade
 					multiline: False
 					text: '1'
 				Label:
-					text: 'Unidade:'
+					text: 'Unid:'
+					size_hint_x: grid6_shx
 				Spinner:
 					id: scCadAlim_spinUnidade
 					text: 'unid'
-				Label:
-					text: 'Bebida?'
-				CheckBox:
-					id: scCadAlim_checkBebida
 			GridLayout:
-				size_hint: 1,0.2
+				size_hint: 1,0.4
 				cols: 2
+				padding: 2,2,10,2
 				Label:
-					text: 'Quantos KCal/' + scCadAlim_spinUnidade.text + ' esse alimento possui?'
+					text: 'KCal/' + scCadAlim_spinUnidade.text + ' desse alimento?  '
+					halign: 'right'
+					text_size: self.size
 				TextInput:
+					size_hint_x: .2
 					id: scCadAlim_txtCaloria
+					multiline: False
+					text: '0'
+				Label:
+					text: 'Peso g/ml de 1 ' + scCadAlim_spinUnidade.text + ' ?  '
+					halign: 'right'
+					text_size: self.size
+				TextInput:
+					size_hint_x: .2
+					hint_text: '1'
+					id: scCadAlim_txtPeso
 					multiline: False
 					text: '0'
 		BoxLayout:
@@ -438,13 +525,50 @@ Builder.load_string('''
         Rectangle:
             size: self.size
 
-    BoxLayout:
+	on_pre_enter: root.gerarTela()			
+			
+	BoxLayout:
         orientation: 'vertical'
         Label:
+			size_hint: 1,0.1
             text: 'Histórico de Consumo'
             font_size: lbPrinc_fs
-            size_hint: 1,0.2
-
+		tableRV:
+			id: scHist_rvHistorico
+			size_hint: 1,0.7
+		GridLayout:
+			cols: 1
+			size_hint: 1,0.1
+			Label:
+				id: scHist_lbAviso
+				text: 'Mostrando histórico para hoje'
+				text_size: self.size
+				halign: 'center'
+				valign: 'middle'
+				font_size: 20
+		BoxLayout:
+			size_hint: 1,.1
+			canvas:
+				Color:
+					rgba: .0, .0, .5, 1
+				Rectangle:
+					size: self.size
+			orientation: 'horizontal'
+            padding: 50,5,50,5
+			spacing: 10
+			halign: 'center'
+			valign: 'middle'
+			
+			Button:
+				text: 'Ok'
+				font_size: 16
+				on_press: root.consumir_click()
+				
+			Button:
+				text: 'Voltar'
+				font_size: 16
+				on_press: root.voltar_click() 
+			
 <scRes>:
     hue: random()
     canvas:
@@ -803,7 +927,7 @@ class scCCRef(Screen):
 			if tggConj.state == 'down':
 				print(tggConj.text)
 				# Tem que apendar tbHistConj
-				db.append('tbHistConj',(db.sqlite3_DateTimeForSQL(datetime.date.today()),0,tggConj.meuCodConj,tggConj.meuCodOpt,))
+				db.append('tbHistConj',(db.sqlite3_DateForSQL(datetime.date.today()),0,tggConj.meuCodConj,tggConj.meuCodOpt,))
 				# TODO: DEPOIS TEM QUE COLOCAR A HORA CERTINHO
 				db.tbHistOpt_ChecaOpt(tggConj.meuCodigo)
 		db.setConfig('DietaAlterada','1')
@@ -816,27 +940,80 @@ class scCCRef(Screen):
 		
 class scCC(Screen):
 	hue = NumericProperty(0)
-	def gerarTelaCC(self,*args):
+	
+	def atualizaRVConjunto(self):
 		rvConjunto = self.ids['scCC_rvReceitas']
-		rvConjunto.data = db.getListDictForTableRVFromTbTable('tbConj')
+		checkBebida = self.ids['scCC_checkBebida']
+		checkBebidaEstado = self.ids['scCC_checkBebidaEstado']
+		checkAlimento =  self.ids['scCC_checkAlimento']
+		checkTipo =  self.ids['scCC_checkTipo']
+		checkGrupo =  self.ids['scCC_checkGrupo']
+		txtAlimento = self.ids['scCC_txtAlimento']
+		spinGrupo = self.ids['scCC_spinGrupo']
+		spinTipo = self.ids['scCC_spinTipo']
+
+		textSQL = '''
+			SELECT DISTINCT
+			codigo, strConjunto, numFreq
+			FROM 
+			(SELECT 
+			tbConj_Alim.codConj as codigo,
+			tbConj.strConjunto,
+			tbConj.numFreq,
+			tbConj_Alim.codAlim,
+			tbConj_Alim.numQtd,
+			tbAlim.strUnidade,
+			tbAlim.strAlimento,
+			tbAlim.numCaloria,
+			tbConj_Alim.numQtd * tbAlim.numCaloria as qtdCalorias,
+			tbAlim.numGrupo,
+			tbAlim.booBebida,
+			tbAlim.numTipo,
+			tbAlim.numPeso
+			FROM
+			tbConj_Alim, tbAlim, tbConj
+			WHERE
+			tbConj_Alim.codigo > 0
+			AND tbConj_Alim.codAlim = tbAlim.codigo
+			AND tbConj_Alim.codConj = tbConj.codigo '''
+		if checkBebida.active:
+			if checkBebidaEstado.active:
+				textSQL += 'AND booBebida = 1 '
+			else:
+				textSQL += 'AND booBebida = 0 '
+		if checkAlimento.active:
+			textSQL += 'AND strAlimento LIKE "%{0}%" '.format(txtAlimento.text)
+		if checkGrupo.active:
+			textSQL += 'AND numGrupo = {0} '.format(int(spinGrupo.text[0:2]))
+		if checkTipo.active:
+			textSQL += 'AND numTipo = {0} '.format(int(spinTipo.text[0:2]))
+		textSQL += ') ' # Fecha os parenteses
+		textSQL += 'Order By NumFreq Desc, strConjunto'
+	
+		rvConjunto.data = db.getListDictForTableRVFromTextSQL(textSQL)
 		for dictD in rvConjunto.data:
 			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codigo'])
 			dictD['text'] = '[b][color=ffd700]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
+	
+	def gerarTelaCC(self,*args):
+		self.atualizaRVConjunto()
 		lbAviso = self.ids['scCC_lbAviso']
 		lbAviso.text = 'Escolha as receitas e clique em consumir'
-		
+		spinGrupo = self.ids['scCC_spinGrupo']
+		spinTipo = self.ids['scCC_spinTipo']
+		spinGrupo.values = db.listGrupoValues
+		spinTipo.values = db.listTipoValues
+				
 	def consumir_click(self):
 		rvConjunto = self.ids['scCC_rvReceitas']
-		numC = 0
 		strConjs = ''
 		for dictD in rvConjunto.data:
 			if dictD['booSel'] == 1:
-				numC += 1
-				db.append('tbHistConj',(db.sqlite3_DateTimeForSQL(datetime.date.today()),0,dictD['codigo'],0,))
+				db.append('tbHistConj',(db.sqlite3_DateForSQL(datetime.date.today()),0,dictD['codigo'],0,))
+				db.tbConj_incNumFreq(dictD['codigo'])
 				strConjs += dictD['strConjunto'] + ', '
-		
 				
-		if numC > 0:
+		if strConjs != '':
 			strConjs = strConjs[:-2]
 			lbAviso = self.ids['scCC_lbAviso']
 			lbAviso.text = 'Consumiu as receitas: ' + strConjs + '\n Escolha outras ou clique em voltar'
@@ -850,53 +1027,15 @@ class scCadAlim(Screen):
 
 	def gerarTela(self,*args):
 		rvTable = self.ids['scCadAlim_rvAlimentos']
-		rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim')
+		rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim','')
 		for dictD in rvTable.data:
 			dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
-
 		spinUnidade = self.ids['scCadAlim_spinUnidade']
 		spinGrupo = self.ids['scCadAlim_spinGrupo']
 		spinTipo = self.ids['scCadAlim_spinTipo']
-
-		spinGrupo.values = [
-		'00 - Nenhum Grupo',
-		'01 - Vegetais A',
-		'02 - Vegetais B',
-		'03 - Frutas Frescas',
-		'04 - Carnes',
-		'05 - Ovos',
-		'06 - Gorduras',
-		'07 - Cereais e Vegetais C',
-		'08 - Leguminosas',
-		'09 - Leites e Derivados',
-		'10 - Queijos',
-		'11 - Embutidos',
-		'12 - Castanhas e Oleaginosas',
-		'13 - Frutas Secas',
-		'14 - Grãos e Farinhas'		
-		]
-				
-		spinUnidade.values = [
-		'unid',
-		'fatia',
-		'porção',
-		'barra',
-		'col de sopa',
-		'col de chá',
-		'concha P',
-		'concha M',
-		'concha G',
-		'xícara de chá',
-		'copo de 300 ml',
-		'copo de 500 ml'
-		]
-		
-		spinTipo.values = [
-		'00 - Natural e Saudável',
-		'01 - Doces com Lactose',
-		'02 - Doces sem Lactose',
-		'03 - Refrigerante'
-		]
+		spinGrupo.values = db.listGrupoValues
+		spinUnidade.values = db.listUnidadeValues
+		spinTipo.values = db.listTipoValues
 
 	def cadastrar_click(self):
 		hab = False
@@ -905,6 +1044,7 @@ class scCadAlim(Screen):
 		spinGrupo = self.ids['scCadAlim_spinGrupo']
 		spinTipo = self.ids['scCadAlim_spinTipo']
 		txtCaloria = self.ids['scCadAlim_txtCaloria']
+		txtPeso = self.ids['scCadAlim_txtPeso']
 		checkBebida = self.ids['scCadAlim_checkBebida']
 		txtQuantidade = self.ids['scCadAlim_txtQuantidade']
 		
@@ -916,9 +1056,9 @@ class scCadAlim(Screen):
 				nB = 1
 			else:
 				nB = 0
-			db.insAlimUn(txtAlimento.text,spinUnidade.text,int(txtCaloria.text),int(spinGrupo.text[0:2]),nB,int(spinTipo.text[0:2]),int(txtQuantidade.text))
+			db.insAlimUn(txtAlimento.text,spinUnidade.text,float(txtCaloria.text),int(spinGrupo.text[0:2]),nB,int(spinTipo.text[0:2]),float(txtPeso.text),int(txtQuantidade.text))
 			rvTable = self.ids['scCadAlim_rvAlimentos']
-			rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim')
+			rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim','')
 			for dictD in rvTable.data:
 				dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
 	
@@ -934,7 +1074,7 @@ class scCadConj(Screen):
 	
 	def gerarTela(self,*args):
 		multiRV = self.ids['scCadConj_rvAlimentos']
-		multiRV.data = db.getListDictForTableRVFromTbTable('tbAlim')
+		multiRV.data = db.getListDictForTableRVFromTbTable('tbAlim','')
 		for dictD in multiRV.data:
 			dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
 
@@ -975,8 +1115,26 @@ class scCadConj(Screen):
 			print(cod)
 			
 class scHist(Screen):
-    hue = NumericProperty(0)
-
+	hue = NumericProperty(0)
+	def gerarTela(self,*args):
+		rvHistorico = self.ids['scHist_rvHistorico']
+		rvHistorico.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj')
+		#lbAviso = self.ids['scHist_lbAviso']
+		#lbAviso.text = 'Escolha as receitas e clique em consumir'
+		
+	# Historico que tiver codOpt = 0 é pq vc consumiu fora da Dieta	
+	# Depois eu melhoro esse histórico criando o SQL 
+	# Tenho que fazer as Horas aparecerem e funcionarem
+	
+	
+		
+	def consumir_click(self):
+		pass
+		
+	def voltar_click(self):
+		self.manager.transition = SlideTransition(direction="right")
+		self.manager.current = 'scDietaDia'
+	
 class scRes(Screen):
     hue = NumericProperty(0)
 

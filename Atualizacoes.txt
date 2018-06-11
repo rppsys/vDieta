@@ -15,3 +15,11 @@ Já alterei o código para incluir o campo novo.
 - Commitei 8a47b0b
 - Criei o tbConfig. Resolvi guardar as configurações no banco de dados em uma tabela chave:valor
 
+10/06
+
+- Inclui o Peso na tabela de alimentos
+- Toquei o tipo do campo numCaloria de Integer para Real
+
+
+
+
