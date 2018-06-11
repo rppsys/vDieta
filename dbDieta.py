@@ -74,10 +74,10 @@ def getDataHoje():
 	return datetime.date.today()
 		
 def getDataAgora():
-	return datetime.date.today()
+	return datetime.date(datetime.datetime.today().year,datetime.datetime.today().month,datetime.datetime.today().day)
 
 def getHoraAgora():
-	return datetime.time(datetime.datetime.today().hour,datetime.datetime.today().minute,datetime.datetime.today().second)
+	return datetime.datetime(2001,1,1,datetime.datetime.today().hour,datetime.datetime.today().minute,datetime.datetime.today().second)
 	
 def getDataHoraHoje():
 	return datetime.datetime.today()
@@ -86,15 +86,14 @@ def makeData(d,m,y): #Retorna um objeto do tipo datetime.date
 	return datetime.date(y,m,d)
 
 def makeHora(h,m,s): #Retorna um objeto do tipo datetime.time
-	return datetime.time(h,m,s)
-
+	return datetime.datetime(2001,1,1,h,m,s)
+	
 def sqlite3_DateForSQL(dtData): #Pega um objeto do tipo datetime e converte para strSQL
 	strRet = "'{0:04}-{1:02}-{2:02}'".format(dtData.year,dtData.month,dtData.day)
 	return strRet
 	
-	
 def sqlite3_TimeForSQL(hrHora): #Pega um objeto do tipo datetime e converte para strSQL
-	strRet = "'{0:02}:{1:02}:{2:02}'".format(hrHora.hour,hrHora.minute,hrHora.second)
+	strRet = "'2001-01-01 {0:02}:{1:02}:{2:02}'".format(hrHora.hour,hrHora.minute,hrHora.second)
 	return strRet
 
 def getStrData(d,m,y): #Retorna uma string contendo a data 
@@ -109,9 +108,13 @@ def getStrDataAgora(): #Retorna uma string contendo a data de agora
 def getStrHoraAgora(): #Retorna uma string contendo a hora de agora
 	return sqlite3_TimeForSQL(getHoraAgora())
 
-
-
-
+	
+def strHrBonito(strObjHora):
+	# 'YYYY-MM-DD HH:MM:SS
+	strH = strObjHora[11:13]
+	strM = strObjHora[14:16]
+	strRet = strH + 'h' + strM
+	return strRet
 	
 def getWeekDay(dtData):
 	'Domingo começa em 1 até sábado igual a 7'
@@ -479,10 +482,10 @@ def hardInsertExemplos():
 	append('tbOpt_Conj',(o11,c10,))
 
 	# Refeições
-	r1 = append('tbRef',('DESJEJUM',getStrHora(7,0,0),))
-	r2 = append('tbRef',('COLACAO',getStrHora(10,0,0),))
-	r3 = append('tbRef',('ALMOCO',getStrHora(12,0,0),))
-	r4 = append('tbRef',('JANTAR',getStrHora(20,0,0),))
+	r1 = append('tbRef',('DESJEJUM',makeHora(7,0,0),))
+	r2 = append('tbRef',('COLACAO',makeHora(10,0,0),))
+	r3 = append('tbRef',('ALMOCO',makeHora(12,0,0),))
+	r4 = append('tbRef',('JANTAR',makeHora(20,0,0),))
 	
 	append('tbRef_Opt',(r1,o1))
 	append('tbRef_Opt',(r1,o11))
@@ -493,7 +496,7 @@ def hardInsertExemplos():
 	append('tbRef_Opt',(r4,o4))
 	
 	# Plano
-	p1 = append('tbPlan',(sqlite3_DateForSQL(getDataAgora()),getStrData(11,6,2018),getStrData(11,8,2018),))
+	p1 = append('tbPlan',(getDataAgora(),makeData(11,6,2018),makeData(11,8,2018),))
 
 	#Plano e Refeicao
 	# Coloquei as 4 refeicoes todos os dias de domingo a sabado
@@ -616,9 +619,10 @@ def	retDF_DietaAtual():
 	tbHistOpt, tbOpt
 	Where tbHistOpt.codOpt = tbOpt.codigo
 	And booC = 0
-	And tbHistOpt.dtData = ''' + sqlite3_DateForSQL(datetime.date.today()) + ' ' + '''
+	And tbHistOpt.dtData = ''' + getStrDataAgora() + ' ' + '''
 	Order By tbHistOpt.hrHora
 	'''
+	#print(textSQL)
 	df = retPandasDfFromSQL(textSQL)
 	return df
 

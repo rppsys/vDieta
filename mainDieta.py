@@ -12,6 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.carousel import Carousel
 
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
@@ -533,9 +534,36 @@ Builder.load_string('''
 			size_hint: 1,0.1
             text: 'Histórico de Consumo'
             font_size: lbPrinc_fs
-		tableRV:
-			id: scHist_rvHistorico
+
+		Carousel:
 			size_hint: 1,0.7
+			direction: 'right'
+			id: scHist_Carousel
+
+			BoxLayout:
+				size_hint: 1,1
+				orientation: 'vertical'
+				Label:
+					size_hint: 1,0.2
+					text: 'Todos Eventos'
+				tableRV:
+					id: scHist_rvHistTudo
+			BoxLayout:
+				size_hint: 1,1
+				orientation: 'vertical'
+				Label:
+					size_hint: 1,0.2
+					text: 'Dentro da Dieta'
+				tableRV:
+					id: scHist_rvHistDentro
+			BoxLayout:
+				size_hint: 1,1
+				orientation: 'vertical'
+				Label:
+					size_hint: 1,0.2
+					text: 'Fora da Dieta'
+				tableRV:
+					id: scHist_rvHistFora
 		GridLayout:
 			cols: 1
 			size_hint: 1,0.1
@@ -878,7 +906,7 @@ class scDietaDia(Screen):
 						# Cria novo widBtnRef
 						btnRef = widBtnRef()
 						btnRef.bind(on_press = partial(btnRef.evento_click,self.manager))
-						btnRef.iniciar(row['strRefeicao'],row['hrHora'])
+						btnRef.iniciar(row['strRefeicao'],db.strHrBonito(row['hrHora']))
 						btnRef.optAppend(row['strOpt'])
 					else:
 						btnRef.optAppend(row['strOpt'])
@@ -925,9 +953,9 @@ class scCCRef(Screen):
 	def consumir_click(self):
 		for tggConj in self.listTggConj:
 			if tggConj.state == 'down':
-				print(tggConj.text)
+				#print(tggConj.text)
 				# Tem que apendar tbHistConj
-				db.append('tbHistConj',(db.getStrDataAgora(),db.getStrHoraAgora(),tggConj.meuCodConj,tggConj.meuCodOpt,))
+				db.append('tbHistConj',(db.getDataAgora(),db.getHoraAgora(),tggConj.meuCodConj,tggConj.meuCodOpt,))
 				# TODO: DEPOIS TEM QUE COLOCAR A HORA CERTINHO
 				db.tbHistOpt_ChecaOpt(tggConj.meuCodigo)
 		db.setConfig('DietaAlterada','1')
@@ -1009,7 +1037,7 @@ class scCC(Screen):
 		strConjs = ''
 		for dictD in rvConjunto.data:
 			if dictD['booSel'] == 1:
-				db.append('tbHistConj',(db.getStrDataAgora(),db.getStrHoraAgora(),dictD['codigo'],0,))
+				db.append('tbHistConj',(db.getDataAgora(),db.getHoraAgora(),dictD['codigo'],0,))
 				db.tbConj_incNumFreq(dictD['codigo'])
 				strConjs += dictD['strConjunto'] + ', '
 				
@@ -1117,16 +1145,16 @@ class scCadConj(Screen):
 class scHist(Screen):
 	hue = NumericProperty(0)
 	def gerarTela(self,*args):
-		rvHistorico = self.ids['scHist_rvHistorico']
-		rvHistorico.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj')
-		#lbAviso = self.ids['scHist_lbAviso']
-		#lbAviso.text = 'Escolha as receitas e clique em consumir'
+		widCarousel =  self.ids['scHist_Carousel']
 		
-	# Historico que tiver codOpt = 0 é pq vc consumiu fora da Dieta	
-	# Depois eu melhoro esse histórico criando o SQL 
-	# Tenho que fazer as Horas aparecerem e funcionarem
+		rvHistTudo =  self.ids['scHist_rvHistTudo']
+		rvHistDentro =  self.ids['scHist_rvHistDentro']
+		rvHistFora =  self.ids['scHist_rvHistFora']
 	
-	
+		rvHistTudo.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj')
+		rvHistDentro.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj where codOpt > 0')
+		rvHistFora.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj where codOpt = 0')
+
 		
 	def consumir_click(self):
 		pass
