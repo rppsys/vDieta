@@ -691,7 +691,7 @@ class widBtnRef(Button):
 	global toScCCRef_strRefeicao
 	
 	strRefeicao = StringProperty('')
-	hrHora = NumericProperty(0)
+	hrHora = StringProperty(0)
 	listOpt = ListProperty([])
 	
 	def __init__(self, **kwargs):
@@ -712,7 +712,7 @@ class widBtnRef(Button):
 		self.listOpt.append(strOpt)
 
 	def criar(self):
-		textoHora = '[color=ffff00]' + str(self.hrHora) + 'h' + '[/color]'
+		textoHora = '[color=ffff00]' + self.hrHora + '[/color]'
 		textoRefeicao = '[color=ffff00]' + self.strRefeicao + '[/color]'
 		self.text = '[b]' + textoHora + ': ' + textoRefeicao + '[/b]'
 		for i in self.listOpt:
@@ -927,7 +927,7 @@ class scCCRef(Screen):
 			if tggConj.state == 'down':
 				print(tggConj.text)
 				# Tem que apendar tbHistConj
-				db.append('tbHistConj',(db.sqlite3_DateForSQL(datetime.date.today()),0,tggConj.meuCodConj,tggConj.meuCodOpt,))
+				db.append('tbHistConj',(db.getStrDataAgora(),db.getStrHoraAgora(),tggConj.meuCodConj,tggConj.meuCodOpt,))
 				# TODO: DEPOIS TEM QUE COLOCAR A HORA CERTINHO
 				db.tbHistOpt_ChecaOpt(tggConj.meuCodigo)
 		db.setConfig('DietaAlterada','1')
@@ -1009,7 +1009,7 @@ class scCC(Screen):
 		strConjs = ''
 		for dictD in rvConjunto.data:
 			if dictD['booSel'] == 1:
-				db.append('tbHistConj',(db.sqlite3_DateForSQL(datetime.date.today()),0,dictD['codigo'],0,))
+				db.append('tbHistConj',(db.getStrDataAgora(),db.getStrHoraAgora(),dictD['codigo'],0,))
 				db.tbConj_incNumFreq(dictD['codigo'])
 				strConjs += dictD['strConjunto'] + ', '
 				

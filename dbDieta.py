@@ -69,22 +69,49 @@ def nC(tbTable):
     else:
         return row[0] + 1
 
+		
 def getDataHoje():
 	return datetime.date.today()
-	#return datetime.date(2018,1,16)
+		
+def getDataAgora():
+	return datetime.date.today()
 
+def getHoraAgora():
+	return datetime.time(datetime.datetime.today().hour,datetime.datetime.today().minute,datetime.datetime.today().second)
+	
 def getDataHoraHoje():
 	return datetime.datetime.today()
-	
-def sqlite3_DateForSQL(dtData):
+
+def makeData(d,m,y): #Retorna um objeto do tipo datetime.date
+	return datetime.date(y,m,d)
+
+def makeHora(h,m,s): #Retorna um objeto do tipo datetime.time
+	return datetime.time(h,m,s)
+
+def sqlite3_DateForSQL(dtData): #Pega um objeto do tipo datetime e converte para strSQL
 	strRet = "'{0:04}-{1:02}-{2:02}'".format(dtData.year,dtData.month,dtData.day)
 	return strRet
 	
 	
-def sqlite3_TimeForSQL(hrHora):
+def sqlite3_TimeForSQL(hrHora): #Pega um objeto do tipo datetime e converte para strSQL
 	strRet = "'{0:02}:{1:02}:{2:02}'".format(hrHora.hour,hrHora.minute,hrHora.second)
 	return strRet
+
+def getStrData(d,m,y): #Retorna uma string contendo a data 
+	return sqlite3_DateForSQL(makeData(d,m,y))
 	
+def getStrHora(h,m,s): #Retorna uma string contendo a hora
+	return sqlite3_TimeForSQL(makeHora(h,m,s))
+
+def getStrDataAgora(): #Retorna uma string contendo a data de agora
+	return sqlite3_DateForSQL(getDataAgora())
+	
+def getStrHoraAgora(): #Retorna uma string contendo a hora de agora
+	return sqlite3_TimeForSQL(getHoraAgora())
+
+
+
+
 	
 def getWeekDay(dtData):
 	'Domingo começa em 1 até sábado igual a 7'
@@ -154,6 +181,7 @@ def inicializar(drop,gera):
 		dropAllTables()
 	if gera:
 		gerarDB()
+		print('Novo banco de dados criado')
 
 def reset():
 	dropTable('tbHistOpt')
@@ -224,7 +252,7 @@ def defineTables():
 	strAuxTable = 'tbRef'
 	dictAuxFields = {
 	'strRefeicao':'TEXT',
-	'hrHora':'INTEGER'
+	'hrHora':'TEXT'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -241,9 +269,9 @@ def defineTables():
 	#----------------------------------------
 	strAuxTable = 'tbPlan'
 	dictAuxFields = {
-	'dataCria':'INTEGER',
-	'dataInicio':'INTEGER',
-	'dataFinal':'INTEGER'
+	'dataCria':'TEXT',
+	'dataInicio':'TEXT',
+	'dataFinal':'TEXT'
 	}
 	dictTables[strAuxTable] = dictAuxFields
 	#----------------------------------------
@@ -262,7 +290,7 @@ def defineTables():
 	strAuxTable = 'tbHistOpt'
 	dictAuxFields = {
 	'dtData':'TEXT',
-	'hrHora':'INTEGER',
+	'hrHora':'TEXT',
 	'strRefeicao':'TEXT',
 	'codOpt':'INTEGER',
 	'booC':'INTEGER'
@@ -274,7 +302,7 @@ def defineTables():
 	strAuxTable = 'tbHistConj'
 	dictAuxFields = {
 	'dtData':'TEXT',
-	'hrHora':'INTEGER',
+	'hrHora':'TEXT',
 	'codConj':'INTEGER',
 	'codOpt':'INTEGER'
 	}
@@ -451,10 +479,10 @@ def hardInsertExemplos():
 	append('tbOpt_Conj',(o11,c10,))
 
 	# Refeições
-	r1 = append('tbRef',('DESJEJUM',7))
-	r2 = append('tbRef',('COLACAO',10))
-	r3 = append('tbRef',('ALMOCO',12))
-	r4 = append('tbRef',('JANTAR',20))
+	r1 = append('tbRef',('DESJEJUM',getStrHora(7,0,0),))
+	r2 = append('tbRef',('COLACAO',getStrHora(10,0,0),))
+	r3 = append('tbRef',('ALMOCO',getStrHora(12,0,0),))
+	r4 = append('tbRef',('JANTAR',getStrHora(20,0,0),))
 	
 	append('tbRef_Opt',(r1,o1))
 	append('tbRef_Opt',(r1,o11))
@@ -465,7 +493,7 @@ def hardInsertExemplos():
 	append('tbRef_Opt',(r4,o4))
 	
 	# Plano
-	p1 = append('tbPlan',(0,0,0,))
+	p1 = append('tbPlan',(sqlite3_DateForSQL(getDataAgora()),getStrData(11,6,2018),getStrData(11,8,2018),))
 
 	#Plano e Refeicao
 	# Coloquei as 4 refeicoes todos os dias de domingo a sabado
@@ -504,9 +532,7 @@ def hardInsertExemplos():
 	append('tbPlan_Ref',(p1,r3,7))
 	append('tbPlan_Ref',(p1,r4,7))	
 	
-	
-	
-	
+	print('Exemplos criados')
 	
 def getConfig(strKey):
 	conn=sqlite3.connect(strDbFilename)
@@ -575,26 +601,6 @@ def initDB():
 		# Avisa que já inicializou o dia de hoje
 		setConfig('strUltimoAcesso',sqlite3_DateForSQL(dtHoje))
 		setConfig('DietaAlterada','1')
-
-def	retDF_DietaAtual():
-	textSQL = '''
-	Select 
-	tbHistOpt.codigo,
-	tbHistOpt.dtData,
-	tbHistOpt.hrHora,
-	tbHistOpt.strRefeicao,
-	tbHistOpt.codOpt,
-	tbHistOpt.booC,
-	tbOpt.strOpt
-	From 
-	tbHistOpt, tbOpt
-	Where tbHistOpt.codOpt = tbOpt.codigo
-	And booC = 0
-	And tbHistOpt.dtData = ''' + sqlite3_DateForSQL(datetime.date.today()) + ' ' + '''
-	Order By tbHistOpt.hrHora
-	'''
-	df = retPandasDfFromSQL(textSQL)
-	return df
 
 def	retDF_DietaAtual():
 	textSQL = '''
