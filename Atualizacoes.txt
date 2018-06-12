@@ -19,7 +19,13 @@ Já alterei o código para incluir o campo novo.
 
 - Inclui o Peso na tabela de alimentos
 - Toquei o tipo do campo numCaloria de Integer para Real
+- Criei a classe FloatInput e troquei onde necessário
 
+12/06
 
-
+- Coloquei um novo exemplo bem mais elaborado e igual ao real
+- Tenho coisas pra fazer:
+	Aumentar height dos botoes dinamicamente 
+	Distinguir entre as opções do CCRef (talvez mudar as cores do botao) para distinguir os grupos
+	
 

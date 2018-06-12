@@ -178,31 +178,47 @@ Acho que vou precisar mudar todos os hrHora para TEXT e alterar todo o código p
 
 Na interface de Resumos usar o carrousel para alternar as imagens.
 
+11/06
 
+O historico foca em mostra tbHistConj
 
+Vou colocar o histórico dentro do Carrosel e criar vários tipos de histórico.
 
+	Label: Historico
+	Janela para escolher datas do filtro 
+		DropDownFiltro	Referencia	PrimeiroDia	UltimoDia	Calcular
+	
+	Carrosel 
+	
+		rvHistorico
+		painelResumo do Historico Ativo (mostro qtd de calorias consumidas no periodo)
+	
+		
+		
+		
+	Historicos
+		- Todas receitas consumidas em ordem de horário - AZUL as da dieta e VERMELHO as que consumi fora da dieta - vou mostra as calorias tambem ao final
+		- Dentro da Dieta	
+		- Fora da Dieta
+		- Coisas que não são saudáveis
+		- Gráficos
+			Possi criar gráficos também mostrando na referido período a contagem de cada grupo de alimentos que andei consumido em relação ao total
+			Gráfico de pizza mostrando as porcentagens de calorias de cada TIPO que você colocou para dentro 
+			
+	Mas por enquanto vou começar com um historico bem simples	
+	
+	
+Resumo -  O resumo mostra tbHistOpt e compara com tbHistConj por dia - É um resumo que será computado e calculado. 
 
+	No resumo eu escolha as datas e ele vai comparar o que era para ter consumido e o que consumi realmente.
 
+	
+12/06
 
+- Tenho coisas pra fazer:
+	Aumentar height dos botoes dinamicamente 
+	Distinguir entre as opções do CCRef (talvez mudar as cores do botao) para distinguir os grupos
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Colocar para rodar no celular	
+	
+- Resumo fica pro futuro	

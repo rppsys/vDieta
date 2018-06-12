@@ -1,6 +1,7 @@
 # Bibliotecas Python
 import datetime
 from functools import partial 
+import re
 
 # Bibliotecas Kivy
 from kivy.app import App
@@ -399,7 +400,7 @@ Builder.load_string('''
 				Label:
 					text: 'Qtd:'
 					size_hint_x: grid6_shx
-				TextInput:
+				FloatInput:
 					id: scCadAlim_txtQuantidade
 					multiline: False
 					text: '1'
@@ -417,7 +418,7 @@ Builder.load_string('''
 					text: 'KCal/' + scCadAlim_spinUnidade.text + ' desse alimento?  '
 					halign: 'right'
 					text_size: self.size
-				TextInput:
+				FloatInput:
 					size_hint_x: .2
 					id: scCadAlim_txtCaloria
 					multiline: False
@@ -426,7 +427,7 @@ Builder.load_string('''
 					text: 'Peso g/ml de 1 ' + scCadAlim_spinUnidade.text + ' ?  '
 					halign: 'right'
 					text_size: self.size
-				TextInput:
+				FloatInput:
 					size_hint_x: .2
 					hint_text: '1'
 					id: scCadAlim_txtPeso
@@ -534,9 +535,37 @@ Builder.load_string('''
 			size_hint: 1,0.1
             text: 'Histórico de Consumo'
             font_size: lbPrinc_fs
-
+		GridLayout:
+			size_hint: 1,0.1
+			cols: 5
+			Label:
+				text: 'Filtro:'
+			Label:
+				text: 'Referência'
+			Label:
+				text: 'Início'
+			Label:
+				text: 'Fim'
+			Label:
+				text: ''
+			Spinner:
+				id: scHist_spinFiltro
+			TextInput:
+				id: scHist_txtRef
+				text: '12/06/2018'
+				multiline: False
+			TextInput:
+				id: scHist_txtInicio
+				text: '10/06/2018'
+				multiline: False
+			TextInput:
+				id: scHist_txtFinal
+				text: '16/06/2018'
+				multiline: False
+			Button:
+				text: 'Verificar'
 		Carousel:
-			size_hint: 1,0.7
+			size_hint: 1,0.6
 			direction: 'right'
 			id: scHist_Carousel
 
@@ -545,7 +574,8 @@ Builder.load_string('''
 				orientation: 'vertical'
 				Label:
 					size_hint: 1,0.2
-					text: 'Todos Eventos'
+					text: 'Todo consumo'
+					font_size: 20
 				tableRV:
 					id: scHist_rvHistTudo
 			BoxLayout:
@@ -553,23 +583,25 @@ Builder.load_string('''
 				orientation: 'vertical'
 				Label:
 					size_hint: 1,0.2
-					text: 'Dentro da Dieta'
+					text: 'Fora da Dieta'
+					font_size: 20
 				tableRV:
-					id: scHist_rvHistDentro
+					id: scHist_rvHistFora
 			BoxLayout:
 				size_hint: 1,1
 				orientation: 'vertical'
 				Label:
 					size_hint: 1,0.2
-					text: 'Fora da Dieta'
+					text: 'Dentro da Dieta'
+					font_size: 20					
 				tableRV:
-					id: scHist_rvHistFora
+					id: scHist_rvHistDentro
 		GridLayout:
 			cols: 1
 			size_hint: 1,0.1
 			Label:
 				id: scHist_lbAviso
-				text: 'Mostrando histórico para hoje'
+				text: 'Mostrando histórico'
 				text_size: self.size
 				halign: 'center'
 				valign: 'middle'
@@ -611,7 +643,7 @@ Builder.load_string('''
             text: 'Resumo de Consumo'
             font_size: lbPrinc_fs
             size_hint: 1,0.2
-			
+		
 <scAutor>:
     hue: random()
     canvas:
@@ -693,6 +725,18 @@ Builder.load_string('''
 
 #Variaveis Globais
 toScCCRef_strRefeicao = '#####'
+
+
+
+class FloatInput(TextInput):
+    pat = re.compile('[^0-9]')
+    def insert_text(self, substring, from_undo=False):
+        pat = self.pat
+        if '.' in self.text:
+            s = re.sub(pat, '', substring)
+        else:
+            s = '.'.join([re.sub(pat, '', s) for s in substring.split('.', 1)])
+        return super(FloatInput, self).insert_text(s, from_undo=from_undo)
 
 ###############################################################################
 ################################         Widgets 
@@ -906,7 +950,7 @@ class scDietaDia(Screen):
 						# Cria novo widBtnRef
 						btnRef = widBtnRef()
 						btnRef.bind(on_press = partial(btnRef.evento_click,self.manager))
-						btnRef.iniciar(row['strRefeicao'],db.strHrBonito(row['hrHora']))
+						btnRef.iniciar(row['strRefeicao'],db.strHrBr(row['hrHora']))
 						btnRef.optAppend(row['strOpt'])
 					else:
 						btnRef.optAppend(row['strOpt'])
@@ -1144,20 +1188,80 @@ class scCadConj(Screen):
 			
 class scHist(Screen):
 	hue = NumericProperty(0)
-	def gerarTela(self,*args):
-		widCarousel =  self.ids['scHist_Carousel']
-		
+	dtI = ''
+	dtF = ''
+	
+	def atualizaHistoricos(self):
 		rvHistTudo =  self.ids['scHist_rvHistTudo']
 		rvHistDentro =  self.ids['scHist_rvHistDentro']
 		rvHistFora =  self.ids['scHist_rvHistFora']
-	
-		rvHistTudo.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj')
-		rvHistDentro.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj where codOpt > 0')
-		rvHistFora.data = db.getListDictForTableRVFromTextSQL('Select * From tbHistConj where codOpt = 0')
+		lbAviso =  self.ids['scHist_lbAviso']
+		
+		textSQL = '''
+		SELECT
+		tbHistConj.codigo as codigo,
+		strftime('%d/%m/%Y',tbHistConj.dtData) as dtData,
+		strftime('%H:%M:%S',tbHistConj.hrHora) as hrHora,
+		tbHistConj.codConj,
+		tbHistConj.codOpt,
+		tbConj.strConjunto
+		FROM
+		tbHistConj, tbConj
+		WHERE tbHistConj.codigo > 0
+		AND tbHistConj.codConj = tbConj.codigo
+		AND tbHistConj.dtData BETWEEN ''' + db.sqlite3_DateForSQL(self.dtI) + ' AND ' + db.sqlite3_DateForSQL(self.dtF) + ' ' + '''
+		'''
+		textOrderBy = 'ORDER BY tbHistConj.dtData,tbHistConj.hrHora'
+		rvHistTudo.data = db.getListDictForTableRVFromTextSQL(textSQL + textOrderBy)
+		for dictD in rvHistTudo.data:
+			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codConj'])
+			auxStrDataHora = '[color=b03951]{0} {1}[/color]: '.format(dictD['dtData'],dictD['hrHora'])
+			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
+			dictD['text'] = auxStrDataHora + auxStrCont
+		
+		rvHistDentro.data = db.getListDictForTableRVFromTextSQL(textSQL + 'AND codOpt > 0 ' + textOrderBy)
+		for dictD in rvHistDentro.data:
+			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codConj'])
+			auxStrDataHora = '[color=b03951]{0} {1}[/color]: '.format(dictD['dtData'],dictD['hrHora'])
+			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
+			dictD['text'] = auxStrDataHora + auxStrCont
 
+		rvHistFora.data = db.getListDictForTableRVFromTextSQL(textSQL + 'AND codOpt = 0 ' + textOrderBy)
+		for dictD in rvHistFora.data:
+			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codConj'])
+			auxStrDataHora = '[color=b03951]{0} {1}[/color]: '.format(dictD['dtData'],dictD['hrHora'])
+			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
+			dictD['text'] = auxStrDataHora + auxStrCont
+		lbAviso.text = 'Mostrando histórico entre ' + db.dateToBrStr(self.dtI) + ' e ' +  db.dateToBrStr(self.dtF)
+	
+	def gerarTela(self,*args):
+		dtHoje = db.getDataAgora()
+	
+		widCarousel =  self.ids['scHist_Carousel']
+		spinFiltro = self.ids['scHist_spinFiltro']
+		txtRef = self.ids['scHist_txtRef']
+		txtInicio = self.ids['scHist_txtInicio']
+		txtFinal = self.ids['scHist_txtFinal']
+
+		spinFiltro.values = [
+			'Semana',
+			'2 Semanas',
+			'Mês',
+			'Livre'
+			]
+
+		spinFiltro.text = 'Semana'
+		txtRef.text = db.dateToBrStr(dtHoje)
+		dtInicio, dtFinal = db.retDtInicioFinalFromDtData(dtHoje)
+		txtInicio.text = db.dateToBrStr(dtInicio)
+		txtFinal.text = db.dateToBrStr(dtFinal)
+		self.dtI = dtInicio
+		self.dtF = dtFinal
+		self.atualizaHistoricos()
 		
 	def consumir_click(self):
-		pass
+		self.manager.transition = SlideTransition(direction="right")
+		self.manager.current = 'scDietaDia'
 		
 	def voltar_click(self):
 		self.manager.transition = SlideTransition(direction="right")
