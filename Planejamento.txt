@@ -218,7 +218,8 @@ Resumo -  O resumo mostra tbHistOpt e compara com tbHistConj por dia - É um res
 - Tenho coisas pra fazer:
 	Aumentar height dos botoes dinamicamente 
 	Distinguir entre as opções do CCRef (talvez mudar as cores do botao) para distinguir os grupos
-
+	Fazer Consumo ser individual e poder consumir em outras quantidades "automaticamente" criando novos conjuntos quando necessário.
+	
 - Colocar para rodar no celular	
 	
 - Resumo fica pro futuro	

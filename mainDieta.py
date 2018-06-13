@@ -57,7 +57,6 @@ Builder.load_string('''
 #:set lbPrinc_fs 30
 #:set grid6_shx .5
 
-
 <TelaPrincipal>:
     canvas:
         Color:
@@ -361,7 +360,7 @@ Builder.load_string('''
 	BoxLayout:
         orientation: 'vertical'
         Label:
-            size_hint: 1,0.1
+            size_hint: 1,0.08
 			text: 'Criar Alimentos'
             font_size: lbPrinc_fs
 		tableRV:
@@ -452,7 +451,18 @@ Builder.load_string('''
 			Button:
 				text: 'Cancelar'
 				font_size: 16
-		
+				on_press: root.voltar_click()
+		Label:
+			size_hint: 1,0.02
+			id: scCadAlim_lbAviso_Bottom
+			text: 'Incluir novas receitas'
+			font_size: 14
+			color: 1,0,0,1
+			halign: 'center'
+			valign: 'middle'
+			bold: True
+
+				
 <scCadConj>		
     hue: random()
     canvas:
@@ -466,12 +476,84 @@ Builder.load_string('''
 	BoxLayout: #Box Pai
         orientation: 'vertical'
         Label: 
-            size_hint: 1,0.1
+            size_hint: 1,0.08
 			text: 'Criar Receitas'
             font_size: lbPrinc_fs
-		multiRV:
+		tableRV:
 			id: scCadConj_rvAlimentos
-			size_hint: 1,0.4
+			size_hint: 1,0.3
+		BoxLayout:
+			size_hint: 1,0.2
+			orientation: 'vertical'
+			BoxLayout: #Caption e Bebida
+				size_hint: 1,.4
+				orientation: 'horizontal'
+				Label:
+					size_hint: 0.8,1
+					text: 'Filtrar:'			
+					text_size: self.size
+					halign: 'left'
+					valign: 'top'
+					font_size: 18
+				BoxLayout:
+					size_hint: 0.2,1
+					orientation: 'horizontal'
+					CheckBox:
+						id: scCadConj_checkBebida
+						size_hint_x: .3
+						#on_active: root.atualizaRVAlimento()
+					Label:
+						text: 'Bebida'
+					CheckBox:
+						id: scCadConj_checkBebidaEstado
+						on_active: if scCadConj_checkBebida.active: root.atualizaRVAlimento()
+			BoxLayout: #Demais Filtros
+				size_hint: 1,0.6
+				orientation: 'horizontal'
+				BoxLayout:
+					orientation: 'vertical'
+					GridLayout:
+						cols: 2
+						CheckBox:
+							id: scCadConj_checkAlimento
+							size_hint_x: .2
+							on_active: root.atualizaRVAlimento()
+						Label:
+							text: 'Alimento:'
+					TextInput:
+						id: scCadConj_txtAlimento
+						text: ''
+						hint_text: 'Digite o alimento'
+						multiline: False
+						on_text: if scCadConj_checkAlimento.active: root.atualizaRVAlimento()
+				BoxLayout:
+					orientation: 'vertical'
+					GridLayout:
+						cols: 2
+						CheckBox:
+							id: scCadConj_checkGrupo
+							size_hint_x: .2
+							on_active: root.atualizaRVAlimento()
+						Label:
+							text: 'Grupo:'
+					Spinner:
+						id: scCadConj_spinGrupo
+						text: '00 - Nenhum Grupo'
+						on_text: if scCadConj_checkGrupo.active: root.atualizaRVAlimento() 
+				BoxLayout:
+					orientation: 'vertical'
+					GridLayout:
+						cols: 2
+						CheckBox:
+							id: scCadConj_checkTipo
+							size_hint_x: .2
+							on_active: root.atualizaRVAlimento()
+						Label:
+							text: 'Tipo:'
+					Spinner:
+						id: scCadConj_spinTipo
+						text: '00 - Nenhum Tipo'
+						on_text: if scCadConj_checkTipo.active: root.atualizaRVAlimento() 
 		BoxLayout: # Comandos em baixo da tabela
 			size_hint: 1,0.1 
 			orientation: 'horizontal'
@@ -480,25 +562,26 @@ Builder.load_string('''
 			halign: 'center'
 			valign: 'middle'
 			Button:
-				text: 'Gerar Conjunto'
+				text: 'Adicionar Alimento'
 				font_size: 16
 				on_press: root.gerarConjunto_click()
 			Button:
-				text: 'Cancelar'
+				text: 'Limpar Alimentos'
 				font_size: 16
-		
+				on_press: root.limpar_click()
 		BoxLayout: # Área onde vou gerar os alimentos selecionados para virar um conjunto
-			size_hint: 1,0.3
+			size_hint: 1,0.2
 			orientation: 'vertical'
 			GridLayout:
-				size_hint: 1,0.2
-				orientation: 'vertical'
-				cols: 3
-				id: scCadConj_Box_Quantidades
-			GridLayout:
-				id: scCadConj_Grid_Quantidades
-				cols: 3
-				size_hint: 1,0.8
+				size_hint: 1,0.3
+				cols: 2
+				id: scCadConj_Super_Quantidades
+			ScrollView:
+				size_hint: 1,0.7
+				GridLayout:
+					id: scCadConj_Grid_Quantidades
+					cols: 3
+					size_hint: 1,None
 		BoxLayout: # Comandos em baixo
 			size_hint: 1,.1
 			canvas:
@@ -518,7 +601,17 @@ Builder.load_string('''
 			Button:
 				text: 'Cancelar'
 				font_size: 16
-		
+				on_press: root.voltar_click()
+		Label:
+			size_hint: 1,0.02
+			id: scCadConj_lbAviso_Bottom
+			text: 'Incluir novas receitas'
+            font_size: 14
+			color: 1,0,0,1
+			halign: 'center'
+			valign: 'middle'
+			bold: True
+
 <scHist>:
     hue: random()
     canvas:
@@ -697,6 +790,8 @@ Builder.load_string('''
 			pos: self.pos
 			size: self.size
 <multiRV>:
+	numSelCod: 1
+	numSelIndex: 0
 	viewclass: 'SelectableLabel'
 	SelectableRecycleBoxLayout:
 		default_size: None, dp(56)
@@ -708,7 +803,8 @@ Builder.load_string('''
 		touch_multiselect: True
 		
 <tableRV>:
-	numSelCod : 1
+	numSelCod: 1
+	numSelIndex: 0
 	viewclass: 'SelectableLabel'
 	SelectableRecycleBoxLayout:
 		default_size: None, dp(56)
@@ -718,13 +814,21 @@ Builder.load_string('''
 		orientation: 'vertical'
 		multiselect: False
 		touch_multiselect: False
-
 ''')
 
 # Aquivos do Projeto
 
 #Variaveis Globais
 toScCCRef_strRefeicao = '#####'
+
+#http://www.color-hex.com/color-palette/61677
+listBtnColors = [
+[ 93/255, 93/255, 93/255,.8],
+[211/255,212/255, 39/255,.8],
+[188/255,216/255,193/255,.8],
+[247/255,127/255,  0/255,.8],
+[112/255,214/255,201/255,.8],
+]
 
 
 
@@ -787,8 +891,11 @@ class widBtnRef(Button):
 		textoHora = '[color=ffff00]' + self.hrHora + '[/color]'
 		textoRefeicao = '[color=ffff00]' + self.strRefeicao + '[/color]'
 		self.text = '[b]' + textoHora + ': ' + textoRefeicao + '[/b]'
+		c = 1
 		for i in self.listOpt:
-			self.text += '\n [i][color=daa520] >>> ' + i + '[/color][/i]'
+			c += 1
+			self.text += '\n [i][color=daa520]' + i + '[/color][/i]'
+		self.height = 60 + 22*c	
 		
 	def evento_click(self,manager,*args):
 		global toScCCRef_strRefeicao
@@ -804,7 +911,8 @@ class widTggConj(ToggleButton):
 	def __init__(self, **kwargs):
 		super(widTggConj, self).__init__(**kwargs)
 
-	def iniciar(self,texto,tbHistOpt_codigo,codOpt,codConj):
+	def iniciar(self,texto,tbHistOpt_codigo,codOpt,codConj,numGrupo):
+		global listBtnColors
 		self.meuCodigo = tbHistOpt_codigo
 		self.meuCodOpt = codOpt
 		self.meuCodConj = codConj
@@ -817,12 +925,15 @@ class widTggConj(ToggleButton):
 		self.size_hint_y = None
 		self.height = 100
 		strReceita,numCals = db.getReceitaFromCodConj(codConj)
-		textoConjunto = '[b][color=ffff00] >>> ' + texto + ': ' + str(numCals) + ' KCal' + '[/color][/b]'
+		textoConjunto = '[b][color=ffff00]' + texto + ': ' + str(numCals) + ' KCal' + '[/color][/b]'
 		textoReceita = '[size=14][i][color=daa520]' + strReceita + '[/color][/i][/size]'
 		self.text = textoConjunto + '\n' + textoReceita
+		# Para dar uma cor por grupo
+		# self.background_normal = ''
+		# self.background_color = listBtnColors[numGrupo % len(listBtnColors)]
 
 # Para as tabelas		
-		
+	
 class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,RecycleBoxLayout):
 	''' Nada '''
 	
@@ -835,7 +946,6 @@ class SelectableLabel(RecycleDataViewBehavior, Label):
 	markup = True	
 	halign = 'center'
 	valign = 'middle'
-
 	
 	def refresh_view_attrs(self, rv, index, data):
 		''' Catch and handle the view changes '''
@@ -855,6 +965,7 @@ class SelectableLabel(RecycleDataViewBehavior, Label):
 		'''
 		self.selected = is_selected
 		if is_selected:
+			rv.numSelIndex = index
 			rv.numSelCod = rv.data[index]['codigo']
 			rv.data[index]['booSel'] = 1
 		else:
@@ -988,11 +1099,27 @@ class scCCRef(Screen):
 			auxBoxLayout.clear_widgets()
 			df = db.retDF_DietaAtualFilterByStrRefeicao(toScCCRef_strRefeicao)
 			self.listTggConj.clear()
+			
+			listGrupo = []
+			indexGrupo = 0
+			indexLast = 1
 			for index,row in df.iterrows():
+				codGrupo = row['codOpt']
+				try:
+					indexGrupo = listGrupo.index(codGrupo)
+				except ValueError:
+					listGrupo.append(codGrupo)
+					indexGrupo = listGrupo.index(codGrupo)
+
+				if indexGrupo != indexLast:
+					lbSep = Label(text=db.retStrOptByCodOpt(row['codOpt']))
+					auxBoxLayout.add_widget(lbSep)					
+
 				tggConj = widTggConj()
-				tggConj.iniciar(row['strConjunto'],row['tbHistOpt_codigo'],row['codOpt'],row['codConj'])
+				tggConj.iniciar(row['strConjunto'],row['tbHistOpt_codigo'],row['codOpt'],row['codConj'],indexGrupo)
 				auxBoxLayout.add_widget(tggConj)					
 				self.listTggConj.append(tggConj)
+				indexLast = indexGrupo
 
 	def consumir_click(self):
 		for tggConj in self.listTggConj:
@@ -1099,7 +1226,7 @@ class scCadAlim(Screen):
 
 	def gerarTela(self,*args):
 		rvTable = self.ids['scCadAlim_rvAlimentos']
-		rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim','')
+		rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim','Order By strAlimento')
 		for dictD in rvTable.data:
 			dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
 		spinUnidade = self.ids['scCadAlim_spinUnidade']
@@ -1108,6 +1235,8 @@ class scCadAlim(Screen):
 		spinGrupo.values = db.listGrupoValues
 		spinUnidade.values = db.listUnidadeValues
 		spinTipo.values = db.listTipoValues
+		lbAviso = self.ids['scCadAlim_lbAviso_Bottom']
+		lbAviso.text = ''
 
 	def cadastrar_click(self):
 		hab = False
@@ -1119,6 +1248,7 @@ class scCadAlim(Screen):
 		txtPeso = self.ids['scCadAlim_txtPeso']
 		checkBebida = self.ids['scCadAlim_checkBebida']
 		txtQuantidade = self.ids['scCadAlim_txtQuantidade']
+		lbAviso = self.ids['scCadAlim_lbAviso_Bottom']
 		
 		# Tenho que estudar como restringir entrada de textos e aceitar apenas numeros e etc...
 		if txtAlimento.text != '':
@@ -1129,63 +1259,149 @@ class scCadAlim(Screen):
 			else:
 				nB = 0
 			db.insAlimUn(txtAlimento.text,spinUnidade.text,float(txtCaloria.text),int(spinGrupo.text[0:2]),nB,int(spinTipo.text[0:2]),float(txtPeso.text),int(txtQuantidade.text))
+			lbAviso.text = 'Alimento ' + txtAlimento.text + ' criado!'
 			rvTable = self.ids['scCadAlim_rvAlimentos']
 			rvTable.data = db.getListDictForTableRVFromTbTable('tbAlim','')
 			for dictD in rvTable.data:
 				dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
-	
+		else:
+			lbAviso.text = 'Escolha um nome para o alimento'
+
+	def voltar_click(self):
+		self.manager.transition = SlideTransition(direction="right")
+		self.manager.current = 'scDietaDia'
+			
 class scCadConj(Screen):
 	hue = NumericProperty(0)
 	txtReceita = None	
+	booPrimeiro = True
 	
 	# Para os Alimentos e Suas Quantidades
 	listCodNum = ListProperty([])
 	listLbAlim = ListProperty([])
 	listTxtQtd = ListProperty([])
 	listLbUnid = ListProperty([])
+
+	def atualizaRVAlimento(self):
+		rvAlimento = self.ids['scCadConj_rvAlimentos']
+		checkBebida = self.ids['scCadConj_checkBebida']
+		checkBebidaEstado = self.ids['scCadConj_checkBebidaEstado']
+		checkAlimento =  self.ids['scCadConj_checkAlimento']
+		checkTipo =  self.ids['scCadConj_checkTipo']
+		checkGrupo =  self.ids['scCadConj_checkGrupo']
+		txtAlimento = self.ids['scCadConj_txtAlimento']
+		spinGrupo = self.ids['scCadConj_spinGrupo']
+		spinTipo = self.ids['scCadConj_spinTipo']
+		
+		textSQL = '''
+			SELECT 
+			tbAlim.codigo as codigo,
+			tbAlim.strAlimento,
+			tbAlim.strUnidade,
+			tbAlim.numCaloria,
+			tbAlim.numGrupo,
+			tbAlim.booBebida,
+			tbAlim.numTipo,
+			tbAlim.numPeso
+			FROM
+			tbAlim
+			WHERE
+			tbAlim.codigo > 0 '''
+		if checkBebida.active:
+			if checkBebidaEstado.active:
+				textSQL += 'AND booBebida = 1 '
+			else:
+				textSQL += 'AND booBebida = 0 '
+		if checkAlimento.active:
+			textSQL += 'AND strAlimento LIKE "%{0}%" '.format(txtAlimento.text)
+		if checkGrupo.active:
+			textSQL += 'AND numGrupo = {0} '.format(int(spinGrupo.text[0:2]))
+		if checkTipo.active:
+			textSQL += 'AND numTipo = {0} '.format(int(spinTipo.text[0:2]))
+		textSQL += 'Order By strAlimento'
+		rvAlimento.data = db.getListDictForTableRVFromTextSQL(textSQL)
+		for dictD in rvAlimento.data:
+			dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
 	
 	def gerarTela(self,*args):
-		multiRV = self.ids['scCadConj_rvAlimentos']
-		multiRV.data = db.getListDictForTableRVFromTbTable('tbAlim','')
-		for dictD in multiRV.data:
-			dictD['text'] = '[color=ffff33][b]' + dictD['strAlimento'] + '[/b] - Grupo ' + str(dictD['numGrupo']) + ' - Tipo ' + str(dictD['numTipo']) + '\n[i]1 ' + dictD['strUnidade'] + ' = ' + str(dictD['numCaloria']) + ' KCal[/i]' + '[/color]' 
+		gridBox = self.ids['scCadConj_Grid_Quantidades']
+		gridBox.bind(minimum_height=gridBox.setter('height'))
+		spinGrupo = self.ids['scCadConj_spinGrupo']
+		spinTipo = self.ids['scCadConj_spinTipo']
+		spinGrupo.values = db.listGrupoValues
+		spinTipo.values = db.listTipoValues
+		self.atualizaRVAlimento()
+		lbAviso = self.ids['scCadConj_lbAviso_Bottom']
+		lbAviso.text = ''
 
+		
 	def gerarConjunto_click(self):
 		# Falta  verificar se teve clicks e etc, mas por enquanto nao to preocupando com isso
-		multiRV = self.ids['scCadConj_rvAlimentos']
-		superBox = self.ids['scCadConj_Box_Quantidades']
+		tableRV = self.ids['scCadConj_rvAlimentos']
+		superBox = self.ids['scCadConj_Super_Quantidades']
 		gridBox = self.ids['scCadConj_Grid_Quantidades']
-		booPrimeiro = True
+		#print(tableRV.numSelIndex) #É o indice do label clicado
+		#print(tableRV.numSelCod) #É o código da tabela do item do label
+		#print(tableRV.data[tableRV.numSelIndex]) #É o dicionário
+		#print(tableRV.data[tableRV.numSelIndex]['strAlimento']) #É a coluna do dicionario
+
+		dictD = tableRV.data[tableRV.numSelIndex]
+		if self.booPrimeiro:
+			self.booPrimeiro = False
+			auxLb = Label(text='Nome da Receita:')
+			self.txtReceita = TextInput(text='')
+			superBox.add_widget(auxLb)
+			superBox.add_widget(self.txtReceita)
+			
+		# Cria
+		auxLbAlim = Label(text=dictD['strAlimento'],size_hint_x = .4,size_hint_y = None, height = 30)
+		auxTxtQtd = TextInput(text='1',size_hint_x = .2,size_hint_y = None,height = 30)
+		auxLbUnid = Label(text=dictD['strUnidade'],size_hint_x = .4,size_hint_y = None,	height = 30)
+		# Adiciona
+		gridBox.add_widget(auxLbAlim)
+		gridBox.add_widget(auxTxtQtd)
+		gridBox.add_widget(auxLbUnid)
+		# Guarda os objetos em listas
+		self.listCodNum.append(dictD['codigo'])
+		self.listLbAlim.append(auxLbAlim)
+		self.listTxtQtd.append(auxTxtQtd)
+		self.listLbUnid.append(auxLbUnid)	
+
+		lbAviso = self.ids['scCadConj_lbAviso_Bottom']
+		lbAviso.text = 'Alimento ' + dictD['strAlimento'] + ' adicionado!'
+		
+	def incluirConjunto_click(self):
+		lbAviso = self.ids['scCadConj_lbAviso_Bottom']
+		if self.txtReceita.text != '':
+			c = db.append('tbConj',(self.txtReceita.text,0,))
+			i = 0
+			for codAlim in self.listCodNum:
+				db.append('tbConj_Alim',(c,codAlim,int(self.listTxtQtd[i].text),))
+				i += 1
+			self.limpar_click()
+			lbAviso.text = 'Receita incluída'
+		else:
+			lbAviso.text = 'Digite um nome para a receita!'
+
+			
+	def limpar_click(self):
+		self.booPrimeiro = True
+		superBox = self.ids['scCadConj_Super_Quantidades']
+		gridBox = self.ids['scCadConj_Grid_Quantidades']
 		superBox.clear_widgets()
 		gridBox.clear_widgets()
-		for dictD in multiRV.data:
-			if dictD['booSel'] == 1:
-				if booPrimeiro:
-					booPrimeiro = False
-					auxLb = Label(text='Nome da Receita:')
-					self.txtReceita = TextInput(text='')
-					superBox.add_widget(auxLb)
-					superBox.add_widget(self.txtReceita)
-			
-				# Cria
-				auxLbAlim = Label(text=dictD['strAlimento'])
-				auxTxtQtd = TextInput(text='1')
-				auxLbUnid = Label(text=dictD['strUnidade'])
-				# Adiciona
-				gridBox.add_widget(auxLbAlim)
-				gridBox.add_widget(auxTxtQtd)
-				gridBox.add_widget(auxLbUnid)
-				# Guarda os objetos em listas
-				self.listCodNum.append(dictD['codigo'])
-				self.listLbAlim.append(auxLbAlim)
-				self.listTxtQtd.append(auxTxtQtd)
-				self.listLbUnid.append(auxLbUnid)	
-	
-	def incluirConjunto_click(self):
-		print(self.txtReceita.text)
-		for cod in self.listCodNum:
-			print(cod)
-			
+		self.listCodNum.clear()
+		self.listLbAlim.clear()
+		self.listTxtQtd.clear()
+		self.listLbUnid.clear()
+		lbAviso = self.ids['scCadConj_lbAviso_Bottom']
+		lbAviso.text = 'Limpou!'
+
+	def voltar_click(self):
+		self.limpar_click()
+		self.manager.transition = SlideTransition(direction="right")
+		self.manager.current = 'scDietaDia'
+		
 class scHist(Screen):
 	hue = NumericProperty(0)
 	dtI = ''

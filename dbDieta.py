@@ -1272,7 +1272,7 @@ def retDF_strConjuntoByCodOpt(codOpt): #Nao estou usando mais
 	df = retPandasDfFromSQL(textSQL)
 	return df
 	
-def retStrOptByCodOpt(codOpt):  #Nao estou usando mais
+def retStrOptByCodOpt(codOpt):  
 	conn=sqlite3.connect(strDbFilename)
 	cur=conn.cursor()
 	textSQL = '''
