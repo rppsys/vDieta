@@ -277,6 +277,7 @@ Builder.load_string('''
 						CheckBox:
 							id: scCC_checkAlimento
 							size_hint_x: .2
+							active: True
 							on_active: root.atualizaRVConjunto()
 						Label:
 							text: 'Alimento:'
@@ -517,6 +518,7 @@ Builder.load_string('''
 						CheckBox:
 							id: scCadConj_checkAlimento
 							size_hint_x: .2
+							active: True
 							on_active: root.atualizaRVAlimento()
 						Label:
 							text: 'Alimento:'
@@ -643,10 +645,12 @@ Builder.load_string('''
 				text: ''
 			Spinner:
 				id: scHist_spinFiltro
+				on_text: root.spinFiltro_change()
 			TextInput:
 				id: scHist_txtRef
 				text: '12/06/2018'
 				multiline: False
+				on_text: root.txtRef_change()
 			TextInput:
 				id: scHist_txtInicio
 				text: '10/06/2018'
@@ -657,6 +661,7 @@ Builder.load_string('''
 				multiline: False
 			Button:
 				text: 'Verificar'
+				on_press: root.verifica_click()
 		Carousel:
 			size_hint: 1,0.6
 			direction: 'right'
@@ -789,6 +794,8 @@ Builder.load_string('''
 		Rectangle:
 			pos: self.pos
 			size: self.size
+	text_size: 350, None 
+		
 <multiRV>:
 	numSelCod: 1
 	numSelIndex: 0
@@ -807,7 +814,7 @@ Builder.load_string('''
 	numSelIndex: 0
 	viewclass: 'SelectableLabel'
 	SelectableRecycleBoxLayout:
-		default_size: None, dp(56)
+		default_size: None, dp(80)
 		default_size_hint: 1, None
 		size_hint_y: None
 		height: self.minimum_height
@@ -820,6 +827,8 @@ Builder.load_string('''
 
 #Variaveis Globais
 toScCCRef_strRefeicao = '#####'
+trimLimit = 100
+trimL = 40
 
 #http://www.color-hex.com/color-palette/61677
 listBtnColors = [
@@ -1181,7 +1190,7 @@ class scCC(Screen):
 			else:
 				textSQL += 'AND booBebida = 0 '
 		if checkAlimento.active:
-			textSQL += 'AND strAlimento LIKE "%{0}%" '.format(txtAlimento.text)
+			textSQL += 'AND (tbConj.strConjunto LIKE "%{0}%" OR tbAlim.strAlimento LIKE "%{1}%") '.format(txtAlimento.text,txtAlimento.text)
 		if checkGrupo.active:
 			textSQL += 'AND numGrupo = {0} '.format(int(spinGrupo.text[0:2]))
 		if checkTipo.active:
@@ -1192,7 +1201,9 @@ class scCC(Screen):
 		rvConjunto.data = db.getListDictForTableRVFromTextSQL(textSQL)
 		for dictD in rvConjunto.data:
 			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codigo'])
-			dictD['text'] = '[b][color=ffd700]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
+			if len(auxReceita) > trimLimit:
+				auxReceita = auxReceita[:trimL] + ' (...) ' + auxReceita[-1 * trimL:]
+			dictD['text'] = '[b][color=ffd700]{0}[/color][/b]\n[size=14][i][color=ffff33]{1} = {2} Kcal[/color][/i][/size]'.format(dictD['strConjunto'],auxReceita,numCals)
 	
 	def gerarTelaCC(self,*args):
 		self.atualizaRVConjunto()
@@ -1431,13 +1442,17 @@ class scHist(Screen):
 		rvHistTudo.data = db.getListDictForTableRVFromTextSQL(textSQL + textOrderBy)
 		for dictD in rvHistTudo.data:
 			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codConj'])
+			if len(auxReceita) > trimLimit:
+				auxReceita = auxReceita[:trimL] + ' (...) ' + auxReceita[-1 * trimL:]
 			auxStrDataHora = '[color=b03951]{0} {1}[/color]: '.format(dictD['dtData'],dictD['hrHora'])
-			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
+			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[size=14][i][color=ffff33]{1} = {2} Kcal[/color][/i][/size]'.format(dictD['strConjunto'],auxReceita,numCals)
 			dictD['text'] = auxStrDataHora + auxStrCont
 		
 		rvHistDentro.data = db.getListDictForTableRVFromTextSQL(textSQL + 'AND codOpt > 0 ' + textOrderBy)
 		for dictD in rvHistDentro.data:
 			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codConj'])
+			if len(auxReceita) > trimLimit:
+				auxReceita = auxReceita[:trimL] + ' (...) ' + auxReceita[-1 * trimL:]
 			auxStrDataHora = '[color=b03951]{0} {1}[/color]: '.format(dictD['dtData'],dictD['hrHora'])
 			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
 			dictD['text'] = auxStrDataHora + auxStrCont
@@ -1445,11 +1460,13 @@ class scHist(Screen):
 		rvHistFora.data = db.getListDictForTableRVFromTextSQL(textSQL + 'AND codOpt = 0 ' + textOrderBy)
 		for dictD in rvHistFora.data:
 			auxReceita, numCals = db.getReceitaFromCodConj(dictD['codConj'])
+			if len(auxReceita) > trimLimit:
+				auxReceita = auxReceita[:trimL] + ' (...) ' + auxReceita[-1 * trimL:]
 			auxStrDataHora = '[color=b03951]{0} {1}[/color]: '.format(dictD['dtData'],dictD['hrHora'])
 			auxStrCont = '[b][color=e9b704]{0}[/color][/b]\n[i][color=ffff33]{1} = {2} Kcal[/color][/i]'.format(dictD['strConjunto'],auxReceita,numCals)
 			dictD['text'] = auxStrDataHora + auxStrCont
 		lbAviso.text = 'Mostrando histórico entre ' + db.dateToBrStr(self.dtI) + ' e ' +  db.dateToBrStr(self.dtF)
-	
+		
 	def gerarTela(self,*args):
 		dtHoje = db.getDataAgora()
 	
@@ -1463,17 +1480,44 @@ class scHist(Screen):
 			'Semana',
 			'2 Semanas',
 			'Mês',
+			'Dia',
 			'Livre'
 			]
 
 		spinFiltro.text = 'Semana'
 		txtRef.text = db.dateToBrStr(dtHoje)
-		dtInicio, dtFinal = db.retDtInicioFinalFromDtData(dtHoje)
+		dtInicio, dtFinal = db.retDtInicioFinalFromDtData(dtHoje,spinFiltro.text[0])
 		txtInicio.text = db.dateToBrStr(dtInicio)
 		txtFinal.text = db.dateToBrStr(dtFinal)
 		self.dtI = dtInicio
 		self.dtF = dtFinal
 		self.atualizaHistoricos()
+
+	def spinFiltro_change(self):
+		self.txtRef_change()
+	
+	def txtRef_change(self):
+		txtRef = self.ids['scHist_txtRef']
+		txtInicio = self.ids['scHist_txtInicio']
+		txtFinal = self.ids['scHist_txtFinal']
+		spinFiltro = self.ids['scHist_spinFiltro']
+		if db.habStrData(txtRef.text):
+			dtRef = db.retDtDataFromStrData(txtRef.text)
+			dtInicio, dtFinal = db.retDtInicioFinalFromDtData(dtRef,spinFiltro.text[0])
+			txtInicio.text = db.dateToBrStr(dtInicio)
+			txtFinal.text = db.dateToBrStr(dtFinal)
+			self.dtI = dtInicio
+			self.dtF = dtFinal
+			self.atualizaHistoricos()
+		
+	def verifica_click(self):
+		txtInicio = self.ids['scHist_txtInicio']
+		txtFinal = self.ids['scHist_txtFinal']
+		if db.habStrData(txtInicio.text):
+			if db.habStrData(txtFinal.text):
+				self.dtI = db.retDtDataFromStrData(txtInicio.text)
+				self.dtF = db.retDtDataFromStrData(txtFinal.text)
+				self.atualizaHistoricos()
 		
 	def consumir_click(self):
 		self.manager.transition = SlideTransition(direction="right")

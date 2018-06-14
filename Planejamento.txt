@@ -216,10 +216,25 @@ Resumo -  O resumo mostra tbHistOpt e compara com tbHistConj por dia - É um res
 12/06
 
 - Tenho coisas pra fazer:
-	Aumentar height dos botoes dinamicamente 
-	Distinguir entre as opções do CCRef (talvez mudar as cores do botao) para distinguir os grupos
+	Aumentar height dos botoes dinamicamente OK
+	Distinguir entre as opções do CCRef (talvez mudar as cores do botao) para distinguir os grupos OK
 	Fazer Consumo ser individual e poder consumir em outras quantidades "automaticamente" criando novos conjuntos quando necessário.
 	
 - Colocar para rodar no celular	
 	
 - Resumo fica pro futuro	
+
+
+14/06
+
+- Terminar tela Historico
+	Fazer botao Verificar funcionar OK
+
+- Tela scCC
+	Dimiuir tamanho texto scCC e wrap OK
+	Fazer popup para consumir outras quantidades daquela receita - Futuro
+	
+- Fazer rotina de criação do banco de dados na primeira vez que entrar no programa - Futuro
+
+- Tentar compilar para Android
+

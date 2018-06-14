@@ -125,10 +125,35 @@ def getWeekDay(dtData):
 		numRet = 1
 	return numRet
 
-def retDtInicioFinalFromDtData(dtData):
-	nW = getWeekDay(dtData)
-	dtInicio = dtData - datetime.timedelta(nW-1)
-	dtFinal = dtData + datetime.timedelta(7 - nW)
+def retDtInicioFinalFromDtData(dtData,charTipo):
+	dtInicio = dtData
+	dtFinal = dtData
+	if charTipo == 'S':
+		nW = getWeekDay(dtData)
+		dtInicio = dtData - datetime.timedelta(nW-1)
+		dtFinal = dtData + datetime.timedelta(7 - nW)
+	elif charTipo == 'M':
+		# Fabrica dtInicio
+		dtInicio = makeData(1,dtData.month,dtData.year)
+
+		#Fabrica dtFinal
+		proxMes = dtData.month + 1
+		if proxMes == 13:
+			proxMes = 1
+		dtFinal = makeData(1,proxMes,dtData.year)
+		dtFinal = dtFinal - datetime.timedelta(1)
+	elif charTipo == '2':
+		nW = getWeekDay(dtData)
+		dtInicio = dtData - datetime.timedelta(nW-1)
+		dtInicio = dtInicio - datetime.timedelta(7)
+		dtFinal = dtData + datetime.timedelta(7 - nW)
+	elif charTipo == 'D': 
+		dtInicio = dtData
+		dtFinal = dtData
+	else:
+		nW = getWeekDay(dtData)
+		dtInicio = dtData - datetime.timedelta(nW-1)
+		dtFinal = dtData + datetime.timedelta(7 - nW)
 	return dtInicio, dtFinal
 	
 
@@ -137,8 +162,22 @@ def dateToBrStr(dtData): #Pega um objeto do tipo date e converte para String no 
 	return strRet
 
 	
-	
+def habStrData(strData):
+	ret = False
+	try:
+		dtData = datetime.datetime.strptime(strData, '%d/%m/%Y')
+		ret = True
+	except ValueError:
+		ret = False
+	return ret
 
+
+def retDtDataFromStrData(strData):
+	dtData = datetime.date(datetime.datetime.today().year,datetime.datetime.today().month,datetime.datetime.today().day) 
+	if habStrData(strData):
+		dtData = datetime.datetime.strptime(strData,'%d/%m/%Y')
+	return datetime.date(dtData.year,dtData.month,dtData.day)
+	
 	
 ################################################################################
 								# Funções para Teste do Código
@@ -1272,7 +1311,7 @@ def retDF_strConjuntoByCodOpt(codOpt): #Nao estou usando mais
 	df = retPandasDfFromSQL(textSQL)
 	return df
 	
-def retStrOptByCodOpt(codOpt):  
+def retStrOptByCodOpt(codOpt):  #Nao estou usando mais
 	conn=sqlite3.connect(strDbFilename)
 	cur=conn.cursor()
 	textSQL = '''
