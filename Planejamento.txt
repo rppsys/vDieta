@@ -238,3 +238,79 @@ Resumo -  O resumo mostra tbHistOpt e compara com tbHistConj por dia - É um res
 
 - Tentar compilar para Android
 
+
+BRAINSTORM
+
+Tela para fazer plano:
+
+0 - Lá em cima você escolhe o plano ou cria um plano novo. Colocar os planos como itens de um spin.
+
+1 - Para o plano escolhido, eu mostro toda a semana. É parecido com o scDietaAtual, só que eu pego e crio botões com a dieta de cada dia da semana
+e coloco em botoes um ao lado do outro.
+
+2 - Os botões são do tipo grupo, todos com o mesmo grupo. Então eu posso selecionar um deles. 
+Cada botão corresponde a uma opção tbOpt. Opção e não conjunto. E guarda a qual tbRef ele está relacionado.
+Assim qualquer um deles que eu ativar, saberei em qual dia adicionar um novo horário.
+Os horários/refeições ficam em Labels e os botões serão as opções individuais de cada horário/refeição.
+
+3 - Vai ter um botao para criar novos horários na coluna do botão selecionado. E ai ele cria novos tbRefs.
+
+4 - Vai ter outro botao para adicionar novas CONJUNTOS à opção cujo botão está selecionado. Entendeu? 
+Eu adiciono conjuntos às opções. Eu não adiciono opções. Eu só adiciono opções quando o botão for um novo e aí
+eu deixo ele adicionar as opções unitárias. Mas depois que a opção está adicionada, eu vou adicionar conjuntos
+às opções. E ele vai tratar de mudar as tabelas e até mesmo mudar o nome da opção para ir adicionando OU isso OU aquilo.
+
+E como posso adicionar novas opções, posso também remover conjuntos das opções existentes. 
+
+Uma forma de fazer isso é colocar duas tabelas. Uma mostra todos os conjuntos disponíveis para serem adicionados
+na opção selecionada.  A outra tabela mostra tos os conjuntos pertencentes à opção selecionada. 
+
+5 - Vai ter um último botão para você adicionar novas opções à refeição cujo horário foi selecionado. 
+
+Outra ideia: Em vez dos horários virem como label, eles podem ser botoes tb.
+
+E ai eu uso um botao "adicionar" com duas finalidades.
+	Se o botao selecionado for de Horario, ele vai adicionar um novo horário com uma nova opção (pelo menos 1) 
+	Se o botao selecionado for alguma opção, ele vai adicionar um novo conjunto a essa opção.
+	
+Eu poderia usar popups para fazer essas adições acima.
+
+Essa tela vai dar um trabalho, mas depois eu fecho o programa pois será possível criar as coisas que faltam
+que são os Planos com as Refeições e as Opções de Cada Dia.
+
+======================================
+
+Como o espaço é limitado, pensando num celular, posso usar um Carousel e colocar um dia em cada aba do Carousel.
+Posso usar aquelas telas de passar também igual tá no demo o Accordion.
+
+E eu gostei do Accordion. Vou usar o accordion pois posso coloca o nome dos dias "Segunda", "Terça", etc...
+
+
+spinPlano
+	Mostro a lista de planos 
+	Em baixo coloco "Criar novo..."
+	on_text: Se for "Criar novo..." ele traz um popup para criar um no Plano.
+	Se não, ao selecionar um dos planos da lista, ele prepara o resto da tela com esse plano.
+	
+Acordion:
+	Um painel para cada dia da semana
+	Dentro de cada painel, vem os botoes com Horário / Refeições
+	Em baixo de cada botao de Horario vem os Botoes de Opções relacionados àquele horário.
+	
+Você tem que saber qual do panels está aberto.
+Alem disso, terá que saber qual dos botoes está selecionado.
+
+E ai vem os botôes:
+
+	Não tem nada selecionado?
+		Botao para Adicionar novo Horário/Refeicao em popup e obriga escolher uma opção para aquele Horário/Refeicao.
+
+	Tem um horario selecionado?
+		Botao para adicionar nova opção ao horário que estiver selecionado.
+		Botao para excluir aquele horário.
+		
+	Tem uma opção selecionada?
+		Botao para mostrar os conjuntos que fazem parte daquela opção e permitir adicionar ou remover conjuntos àquela opção.
+	
+E assim consigo uma tela limpa, pequena, mas que vai resolver todas as funções necessárias para criar e manter planos
+de dietas.
